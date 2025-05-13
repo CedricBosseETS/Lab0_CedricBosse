@@ -3,3 +3,5 @@ def main():
 
 def HelloWorld():
     return "Hello World"
+
+main()
