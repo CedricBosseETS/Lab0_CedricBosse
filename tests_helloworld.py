@@ -1,8 +1,8 @@
-from helloworld import HelloWorld
+from helloworld import hello_world
 
-def test_HelloWorld():
-    assert HelloWorld() == "Hello World"
+def test_hello_world():
+    assert hello_world() == "Hello World"
 
-def test_HelloWorld_returns_string():
-    result = HelloWorld()
+def test_hello_world_returns_string():
+    result = hello_world()
     assert isinstance(result, str)

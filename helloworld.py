@@ -1,7 +1,10 @@
+"""Module principal qui affiche 'Hello World'."""
 def main():
-    print(HelloWorld())
+    """Point d'entrée du programme."""
+    print(hello_world())
 
-def HelloWorld():
+def hello_world():
+    """Retourne un message Hello World."""
     return "Hello World"
 
 main()
