@@ -52,4 +52,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: docker.io/cedricbosse/hello-world:latest
+          tags: docker.io/cedricbosseets/hello-world:latest
