@@ -1,4 +1,4 @@
-"""Module principal qui affiche 'Hello World'."""
+"""Fonction main qui appel hello_world."""
 def main():
     """Point d'entrée du programme."""
     print(hello_world())
