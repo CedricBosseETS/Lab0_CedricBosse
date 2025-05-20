@@ -18,7 +18,7 @@ jobs:
       - name: Install dependencies
         run: pip install pylint
       - name: Lint with pylint
-        run: pylint helloworld.py
+        run: pylint helloworld.py/////////////////////////////////////////
 
   test:
     runs-on: ubuntu-latest
@@ -33,7 +33,7 @@ jobs:
         run: |
           pip install pytest
       - name: Run tests
-        run: pytest tests_helloworld.py
+        run: pytest tests_helloworld.py///////////////////////////////////////
 
   build-and-push:
     runs-on: ubuntu-latest
