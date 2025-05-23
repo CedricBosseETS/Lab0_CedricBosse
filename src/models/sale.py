@@ -1,25 +1,11 @@
+from sqlalchemy import Column, Integer, DateTime, ForeignKey
+from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 
-class Sale:
-    def __init__(self, sale_id, products, total, timestamp=None):
-        self.sale_id = sale_id
-        self.products = products  # Liste de dicts {"product_id", "name", "price", "quantity"}
-        self.total = total
-        self.timestamp = timestamp or datetime.now()
+Base = declarative_base()
 
-    def to_dict(self):
-        return {
-            "sale_id": self.sale_id,
-            "products": self.products,
-            "total": self.total,
-            "timestamp": self.timestamp
-        }
+class Sale(Base):
+    __tablename__ = 'sales'
 
-    @staticmethod
-    def from_dict(data):
-        return Sale(
-            sale_id=data["sale_id"],
-            products=data["products"],
-            total=data["total"],
-            timestamp=data["timestamp"]
-        )
+    id = Column(Integer, primary_key=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)

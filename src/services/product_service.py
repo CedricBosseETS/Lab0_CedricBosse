@@ -1,5 +1,5 @@
-from src.database.mysql_client import SessionLocal
-from src.models.product import Product
+from database.mysql_client import SessionLocal
+from models.product import Product
 from sqlalchemy import or_
 
 def search_product(keyword):
