@@ -2,8 +2,7 @@ from database.init_db import init_db
 from services.produit_service import afficher_produits
 from services.vente_service import faire_vente
 from services.vente_service import annuler_vente
-
-
+from services.produit_service import rechercher_produit
 
 def afficher_menu():
     print("\n=== MENU PRINCIPAL DE LA CAISSE ===")
@@ -33,7 +32,8 @@ def main():
             annuler_vente()
             pause()
         elif choix == "4":
-            print(">> TODO: afficher l’historique des ventes")
+            rechercher_produit()
+            pause()
         elif choix == "5":
             print("Au revoir !")
             break
