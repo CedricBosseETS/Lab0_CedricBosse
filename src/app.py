@@ -1,12 +1,20 @@
 from database.init_db import init_db
+from services.produit_service import afficher_produits
+from services.vente_service import faire_vente
+from services.vente_service import annuler_vente
+
+
 
 def afficher_menu():
     print("\n=== MENU PRINCIPAL DE LA CAISSE ===")
     print("1. Afficher les produits")
-    print("2. Ajouter un produit")
-    print("3. Faire une vente")
-    print("4. Voir l’historique des ventes")
+    print("2. Enregistrer une vente")
+    print("3. Annuler une vente")
+    print("4. Rechercher un produit (par identifiant ou nom")
     print("5. Quitter")
+
+def pause():
+    input("\nAppuyez sur Entrée pour revenir au menu...")
 
 def main():
     init_db()  # Initialisation au lancement
@@ -16,11 +24,14 @@ def main():
         choix = input("Choisissez une option (1-5) : ")
 
         if choix == "1":
-            print(">> TODO: afficher les produits")
+            afficher_produits()
+            pause()
         elif choix == "2":
-            print(">> TODO: ajouter un produit")
+            faire_vente()
+            pause()
         elif choix == "3":
-            print(">> TODO: faire une vente")
+            annuler_vente()
+            pause()
         elif choix == "4":
             print(">> TODO: afficher l’historique des ventes")
         elif choix == "5":
