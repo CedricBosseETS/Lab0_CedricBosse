@@ -5,6 +5,7 @@ from services.vente_service import annuler_vente
 from services.produit_service import rechercher_produit
 
 def afficher_menu():
+    """Affiche le menu de la caisse"""
     print("\n=== MENU PRINCIPAL DE LA CAISSE ===")
     print("1. Afficher les produits")
     print("2. Enregistrer une vente")
@@ -13,10 +14,12 @@ def afficher_menu():
     print("5. Quitter")
 
 def pause():
+    """Arrête le programme après chaque commande pour que l'utilisateur voit le résultat"""
     input("\nAppuyez sur Entrée pour revenir au menu...")
 
 def main():
-    init_db()  # Initialisation au lancement
+    """Fonction principale du programme qui écoute le clavier du user"""
+    init_db()
 
     while True:
         afficher_menu()

@@ -1,7 +1,9 @@
+"""Ce module s'occupe de gérer les accès à la DB pour tout ce qui touche aux produits"""
 from database.init_db import SessionLocal
 from models.produit import Produit
 
 def afficher_produits():
+    """Affiche tout les produits, leurs prix unitaire et la quantité disponible"""
     session = SessionLocal()
     try:
         produits = session.query(Produit).all()
@@ -16,6 +18,7 @@ def afficher_produits():
         session.close()
 
 def rechercher_produit():
+    """Affiche les produits qui correspondent à ce que le user a entrer comme paramètre"""
     session = SessionLocal()
 
     try:

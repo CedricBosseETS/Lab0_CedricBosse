@@ -1,10 +1,9 @@
+"""Ce module sert à la création de la base de donnée MySQL et à la gestion des sessions pour les usagers multiple"""
 import os
 from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from models.base import Base
 from models.produit import Produit
-from models.vente import Vente
-from models.vente_produit import VenteProduit
-from sqlalchemy.orm import sessionmaker
 
 # Connexion à la base de données via les variables d'environnement
 DB_USER = os.getenv("DB_USER")
@@ -19,6 +18,7 @@ engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def init_db():
+    """Comme indiqué plus haut, cette fonction instancie ma DB et insère des valleurs de départ"""
     print("Création des tables…")
     Base.metadata.create_all(bind=engine)
 

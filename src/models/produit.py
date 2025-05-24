@@ -1,7 +1,9 @@
+"""Représente les produits dans la DB"""
 from sqlalchemy import Column, Integer, String, Float
 from models.base import Base
 
 class Produit(Base):
+    """Représente un produit"""
     __tablename__ = "produits"
 
     id = Column(Integer, primary_key=True, index=True)

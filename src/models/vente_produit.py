@@ -1,8 +1,10 @@
+"""Représente les produits achetés dans une vente"""
 from sqlalchemy import Column, Integer, ForeignKey, Float
 from sqlalchemy.orm import relationship
 from models.base import Base
 
 class VenteProduit(Base):
+    """Représente les produits d'une vente"""
     __tablename__ = "vente_produits"
 
     id = Column(Integer, primary_key=True)

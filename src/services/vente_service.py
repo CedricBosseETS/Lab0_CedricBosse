@@ -1,12 +1,14 @@
+"""Ce module s'occupe de gérer les accès à la DB pour tout ce qui touche aux ventes"""
 from models.produit import Produit
 from models.vente import Vente
 from models.vente_produit import VenteProduit
 from database.init_db import SessionLocal
 
 def faire_vente():
+    """Affiche le menu de vente pour l'utilisateur et lance la requête à la DB avec ce qu'il a choisis"""
     session = SessionLocal()
     panier = []
-    quantites_temp = {}  # Nouveau dictionnaire pour suivre les quantités réservées
+    quantites_temp = {} 
 
     try:
         while True:
@@ -59,6 +61,7 @@ def faire_vente():
 
 
 def creer_vente(panier, session):
+    """Fait la requête à la DB et mets à jour les items disponibles et leurs quantités"""
     try:
         total = sum(p.prix * q for p, q in panier)
 
@@ -85,6 +88,7 @@ def creer_vente(panier, session):
         session.close()
 
 def annuler_vente():
+    """Annule une vente et mets à jour les quantités disponibles"""
     session = SessionLocal()
 
     try:
