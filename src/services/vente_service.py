@@ -86,41 +86,40 @@ def creer_vente(panier, session):
 
 def annuler_vente():
     session = SessionLocal()
+
     try:
-        ventes = session.query(Vente).order_by(Vente.date_heure.desc()).limit(10).all()
+        ventes = session.query(Vente).order_by(Vente.date_heure.desc()).all()
         if not ventes:
-            print("Aucune vente récente à annuler.")
+            print("Aucune vente enregistrée.")
             return
 
         print("\n--- Dernières ventes ---")
-        for v in ventes:
-            print(f"ID: {v.id} | Total: {v.total:.2f} $ | Date: {v.date_heure}")
+        for vente in ventes:
+            print(f"ID: {vente.id} | Total: {vente.total:.2f} $ | Date: {vente.date_heure}")
 
-        choix = input("ID de la vente à annuler : ").strip()
-        vente = session.query(Vente).filter_by(id=int(choix)).first()
-
+        vente_id = input("ID de la vente à annuler : ").strip()
+        vente = session.query(Vente).filter_by(id=int(vente_id)).first()
         if not vente:
             print("Vente introuvable.")
             return
 
-        confirmation = input(f"Confirmer l’annulation de la vente {vente.id} (o/N) ? ").strip().lower()
-        if confirmation != "o":
-            print("Annulation annulée.")
+        confirmation = input(f"Confirmer l’annulation de la vente {vente.id} (o/N) ? ").lower()
+        if confirmation != 'o':
+            print("Annulation abandonnée.")
             return
-        
-        for ligne in vente.produits:
-            print(f"Ligne: produit_id={ligne.produit_id}, quantite={ligne.quantite}")
 
-        for produit in vente.produits:
-            produit = session.query(Produit).filter_by(id=produit.produit_id).first()
+        for ligne in vente.produits:
+            produit = session.query(Produit).filter_by(id=ligne.produit_id).first()
             if produit:
-                produit.quantite_stock += produit.quantite_stock
+                produit.quantite_stock += ligne.quantite
 
         session.delete(vente)
         session.commit()
         print("Vente annulée et stock restauré.")
+
     except Exception as e:
         session.rollback()
         print(f"Erreur lors de l’annulation : {e}")
     finally:
         session.close()
+
