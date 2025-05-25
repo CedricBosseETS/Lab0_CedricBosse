@@ -1,14 +1,26 @@
 """Fichier de test qui touche les ventes"""
+import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from models.base import Base
 from services.produit_service import ajouter_produit, rechercher_produit
 from services.vente_service import creer_vente
 
-def test_creer_vente():
-    """Test qui fait une vente mais s'assure qu'il y a quelque chose dans la DB,
-      ensuite vérifie la quantité"""
-    ajouter_produit("Produit Vente", 5.00, 5)
-    produit = rechercher_produit("Produit Vente")
+@pytest.fixture(scope="function")
+def session():
+    engine = create_engine("sqlite:///:memory:", echo=False)
+    Base.metadata.create_all(engine)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    yield session
+    session.close()
 
-    creer_vente([{"produit_id": produit.id, "quantite": 2}])
+def test_creer_vente(session):
+    """Test qui fait une vente, vérifie que la quantité est réduite"""
+    ajouter_produit("Produit Vente", 5.00, 5, session)
+    produit = rechercher_produit(session, "Produit Vente")
 
-    produit_mis_a_jour = rechercher_produit(str(produit.id))
+    creer_vente([{"produit_id": produit.id, "quantite": 2}], session)
+
+    produit_mis_a_jour = rechercher_produit(session, str(produit.id))
     assert produit_mis_a_jour.quantite == 3
