@@ -1,0 +1,52 @@
+@startuml
+start
+
+:Afficher les produits disponibles;
+
+:Initialiser panier et quantités_temp;
+
+while (Utilisateur entre un ID ?) is (oui)
+  :Lire l'entrée utilisateur;
+
+  if (Entrée == 'f') then (oui)
+    break
+  endif
+
+  if (Entrée n'est pas un entier) then (oui)
+    :Afficher "Entrée invalide";
+  else
+    :Récupérer le produit par ID;
+
+    if (Produit non trouvé) then (oui)
+      :Afficher "Produit invalide";
+    else
+      :Calculer stock disponible;
+
+      :Demander la quantité;
+
+      if (Quantité > stock dispo) then (oui)
+        :Afficher "Stock insuffisant";
+      else
+        :Ajouter au panier;
+        :Mettre à jour quantités_temp;
+        :Afficher ajout au panier;
+      endif
+    endif
+  endif
+endwhile
+
+if (Panier vide ?) then (oui)
+  :Afficher "Aucun produit sélectionné";
+  stop
+endif
+
+:Calculer total;
+
+:Créer la vente et les lignes de vente;
+:Mettre à jour le stock;
+:Commit transaction;
+
+:Afficher le total;
+
+stop
+@enduml

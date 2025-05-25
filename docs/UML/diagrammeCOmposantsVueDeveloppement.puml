@@ -1,0 +1,30 @@
+@startuml
+skinparam componentStyle rectangle
+
+package "Application Caisse" {
+    
+    [Interface Utilisateur] --> [Service Vente]
+    [Interface Utilisateur] --> [Service Produit]
+
+    [Service Vente] --> [Base de données]
+    [Service Produit] --> [Base de données]
+
+    [Service Vente] --> [Modèle Vente]
+    [Service Vente] --> [Modèle Produit]
+    [Service Vente] --> [Modèle VenteProduit]
+
+    [Service Produit] --> [Modèle Produit]
+
+    [Service Vente] --> [Session SQLAlchemy]
+    [Service Produit] --> [Session SQLAlchemy]
+}
+
+package "Modèles" {
+    [Modèle Produit]
+    [Modèle Vente]
+    [Modèle VenteProduit]
+}
+
+[Session SQLAlchemy] --> [Base de données]
+
+@enduml

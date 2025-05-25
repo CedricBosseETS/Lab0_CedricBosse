@@ -1,32 +1,40 @@
-# Lab0_CedricBosse
+# Lab1_CedricBosse
 ## Description
-Il s'agit d'un simple hello world qui est affiché dans la console.
+Il s'agit d'une application console qui simule une caisse enregistreuse. Les caisses communiquent avec une base de données MySQL, 
+et plusieurs caisses peuvent être utilisées en même temps.
 
-## Architecture
-Comme il s'agit d'un simple hello world, l'architecture est très simple et rudimentaire. Le fichier de helloworld.py est à la racine et le fichier de tests ainsi que les fichiers nécessaires au fonctionnement de docker. Avec un projet plus gros j'aurais séparé les fichiers de tests et les fichiers principaux dans des dossiers séparés. Comme ça, seuls les fichiers de docker et le ReadMe seraient à la racine.
-
-## Instructions de clonage : 
-1. Créer un dossier qui va contenir le projet.
-2. Ouvrir un CMD
-3. Faire : CD "path jusqu'au dossier créé"
-4. Faire la commande git clone "url du projet git". Puis, faire cd Lab0_CedricBosse
-De cette manière, vous devriez être placé à la racine du projet.
-
-## Installation des dépendances (toujours à la racine du projet) 
-Faire les commandes suivantes dans un environnement linux :
-sudo apt install python3-pip
-sudo apt install python3-pytest
+## Installation des dépendances (À la racine du projet) 
+Faire la commande suivante dans un environnement linux pour pouvoir utiliser l'application:
 sudo apt install docker-compose
-sudo apt install pylint
 
-## Instructions de lancement du conteneur local :
-1. docker compose build
-2. docker compose down (pour fermer un conteneur déjà existant au cas où)
-3. docker compose up
-Ça m'a suffi pour une exécution locale du conteneur.
+## Instructions de lancement de l'application :
+1. docker-compose down -v --remove-orphans (pour fermer un conteneur déjà existant au cas où)
+2. docker compose build --no-cache
+3. docker compose run web
 
-# Fonctionnement du pipeline CI/CD : après chaque push et chaque merge, le pipeline va automatiquement s'éxécuter et va éxucuter trois étapes. Il commence par vérifier la syntaxe du code, puis il fait les tests unitaires.
-Enfin, il finit avec le build et le push de l'image  sur Docker Hub.  
+## Instructions de lancement des tests :
+1. docker-compose down -v --remove-orphans (pour fermer un conteneur déjà existant au cas où)
+2. docker compose build --no-cache
+3. docker compose run web pytest
 
-# Voici une image d'une exécution réussie du pipeline :
-![alt text](image.png)
+## Utilisation de l'application
+L'application est très simple à utiliser. Une fois que les commandes de lancement sont effectuées, un menu s'affiche dans la console. Il suffit de suivre les instructions, soit en choisissant un numéro, soit en entrant un nom selon l'option choisie.
+
+## Choix technologiques et justification
+
+### MySQL comme base de données relationnelle  
+MySQL a été choisi comme SGBD relationnel, car il est bien supporté dans Docker, largement utilisé, et fonctionne très bien avec SQLAlchemy. Il permet de gérer les relations entre les entités comme les produits, les ventes et les lignes de vente.
+
+### Python + SQLAlchemy  
+Python est un langage simple et rapide à prendre en main. SQLAlchemy permet d’interagir avec la base de données en utilisant des objets Python, ce qui rend le code plus lisible et plus facile à maintenir. Cela permet aussi de changer de SGBD plus tard si nécessaire.
+
+### Docker & Docker Compose  
+L'application tourne entièrement dans des conteneurs Docker. Cela évite les problèmes de configuration entre les machines. Docker Compose permet de démarrer la base de données et l’application en deux commandes rapide. Cela simplifie l’installation.
+
+### Pytest pour les tests  
+Pytest est utilisé pour écrire et lancer les tests automatisés. Les tests tournent aussi dans les conteneurs Docker, dans le même environnement que l’application principale. Cela permet de s’assurer que le code fonctionne partout de la même façon.
+
+### Organisation modulaire du code  
+Le code est séparé en plusieurs parties : les modèles, les services, et l’interface console. Cette structure rend le projet plus propre et plus facile à faire évoluer ou à tester.
+
+

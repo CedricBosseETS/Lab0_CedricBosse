@@ -1,0 +1,65 @@
+@startuml
+
+' =========================
+'       LES CLASSES
+' =========================
+
+class Produit {
+    +id: int
+    +nom: str
+    +prix: float
+    +quantite_stock: int
+}
+
+class Vente {
+    +id: int
+    +date_heure: datetime
+    +total: float
+}
+
+class VenteProduit {
+    +id: int
+    +vente_id: int
+    +produit_id: int
+    +quantite: int
+    +prix_unitaire: float
+}
+
+class ProduitService {
+    +ajouter_produit(nom, prix, quantite)
+    +afficher_produits()
+    +rechercher_produit()
+}
+
+class VenteService {
+    +faire_vente()
+    +creer_vente(panier, session)
+    +annuler_vente()
+}
+
+class SessionLocal {
+    +begin()
+    +commit()
+    +rollback()
+    +close()
+}
+
+' =========================
+'    RELATIONS ENTRE CLASSES
+' =========================
+
+' Relations ORM
+Vente "1" --> "many" VenteProduit : contient >
+Produit "1" --> "many" VenteProduit : participe à >
+
+' Relations services -> modèles
+ProduitService ..> Produit : utilise >
+VenteService ..> Vente : utilise >
+VenteService ..> VenteProduit : utilise >
+VenteService ..> Produit : met à jour >
+
+' Base de données (session)
+ProduitService ..> SessionLocal : ouvre session >
+VenteService ..> SessionLocal : ouvre session >
+
+@enduml
