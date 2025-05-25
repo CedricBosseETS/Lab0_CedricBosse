@@ -59,7 +59,7 @@ def ajouter_produit(nom: str, prix: float, quantite: int, session):
     :param quantite: La quantité en stock
     :param session: La session SQLAlchemy pour effectuer l'opération
     """
-    nouveau_produit = Produit(nom=nom, prix=prix, quantite=quantite)
+    nouveau_produit = Produit(nom=nom, prix=prix, quantite_stock=quantite)
     session.add(nouveau_produit)
     session.commit()
     return nouveau_produit
