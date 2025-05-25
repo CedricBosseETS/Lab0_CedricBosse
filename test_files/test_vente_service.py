@@ -23,4 +23,4 @@ def test_creer_vente(session):
     creer_vente([{"produit_id": produit.id, "quantite": 2}], session)
 
     produit_mis_a_jour = rechercher_produit(session, str(produit.id))
-    assert produit_mis_a_jour.quantite == 3
+    assert produit_mis_a_jour.quantite_stock == 3
