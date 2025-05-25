@@ -16,7 +16,7 @@ services:
       - "5000:5000"
     volumes:
       - .:/app
-    command: ["bash", "/app/wait-for-it.sh", "db:3306", "-t", "60", "--", "python", "app.py"]
+    command: ["bash", "/app/wait-for-it.sh", "db:3306", "-t", "60", "--", "python", "src/app.py"]
 
   db:
     image: mysql:8.3

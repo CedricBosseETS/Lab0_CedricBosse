@@ -1,25 +1,28 @@
 # syntax=docker/dockerfile:1
 FROM python:3.11-slim
 
-WORKDIR /app/src
+# Définir le dossier de travail principal
+WORKDIR /app
 
+# Définir le PYTHONPATH pour inclure le dossier src
 ENV PYTHONPATH=/app/src
 
+# Installer bash (nécessaire pour wait-for-it.sh)
 RUN apt-get update && apt-get install -y bash
 
-RUN pip install cryptography
+# Copier les requirements et installer les dépendances
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copier requirements.txt à la racine /app (hors src)
-COPY requirements.txt /app/
+# Copier les sources, les tests et le script wait-for-it
+COPY src/ src/
+COPY test_files/ test_files/
+COPY wait-for-it.sh wait-for-it.sh
+RUN chmod +x wait-for-it.sh
 
-RUN pip install --no-cache-dir -r /app/requirements.txt
+# Copier le fichier pytest.ini si tu en as un
+COPY pytest.ini .
 
-# Copier le dossier src dans /app/src
-COPY src/ /app/src/
+# Définir la commande par défaut
+CMD ["bash", "wait-for-it.sh", "db:3306", "--", "python", "src/app.py"]
 
-# Copier le script wait-for-it.sh dans /app/
-COPY wait-for-it.sh /app/wait-for-it.sh
-RUN chmod +x /app/wait-for-it.sh
-
-# Commande par défaut : utiliser wait-for-it depuis /app, puis lancer python app.py dans /app/src
-CMD ["bash", "/app/wait-for-it.sh", "db:3306", "--", "python", "app.py"]
