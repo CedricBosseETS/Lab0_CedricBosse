@@ -49,18 +49,3 @@ def rechercher_produit():
         print(f"Erreur lors de la recherche : {e}")
     finally:
         session.close()
-
-def ajouter_produit(nom: str, prix: float, quantite: int):
-    """
-    Ajoute un produit à la base de données.
-
-    :param nom: Le nom du produit
-    :param prix: Le prix unitaire du produit
-    :param quantite: La quantité en stock
-    :param session: La session SQLAlchemy pour effectuer l'opération
-    """
-    session = SessionLocal()
-    nouveau_produit = Produit(nom=nom, prix=prix, quantite_stock=quantite)
-    session.add(nouveau_produit)
-    session.commit()
-    return nouveau_produit

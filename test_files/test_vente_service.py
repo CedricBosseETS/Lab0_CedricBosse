@@ -2,10 +2,9 @@
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from database.init_db import SessionLocal
 from models.base import Base
-from services.produit_service import ajouter_produit, rechercher_produit
 from services.vente_service import creer_vente
+from unittest.mock import MagicMock
 
 @pytest.fixture(scope="function")
 def session():
@@ -16,26 +15,41 @@ def session():
     yield session
     session.close()
 
-def test_creer_vente():
-    # Étape 1 : Ajouter un produit de test
-    ajouter_produit("Produit Vente", 5.00, 5)
+class ProduitMock:
+    def __init__(self, id, prix):
+        self.id = id
+        self.prix = prix
+        self.quantite_stock = 10
 
-    # Étape 2 : Aller chercher le produit depuis la DB directement (pas avec input())
-    session = SessionLocal()
-    try:
-        produit = session.query(Produit).filter_by(nom="Produit Vente").first()
-        assert produit is not None
+def test_creer_vente_sans_db():
+    # Prépare un panier fictif
+    produit1 = ProduitMock(id=1, prix=5.0)
+    produit2 = ProduitMock(id=2, prix=3.0)
 
-        # Étape 3 : Créer un panier et faire la vente
-        panier = [(produit, 2)]
-        creer_vente(panier)
-    finally:
-        session.close()
+    panier = [(produit1, 2), (produit2, 3)]
 
-    # Étape 4 : Vérifier que le stock est bien diminué
-    session = SessionLocal()
-    try:
-        produit_mis_a_jour = session.query(Produit).filter_by(nom="Produit Vente").first()
-        assert produit_mis_a_jour.quantite_stock == 3
-    finally:
-        session.close()
+    # Mock de la session avec méthode add, flush, commit, rollback
+    session_mock = MagicMock()
+    session_mock.add.return_value = None
+    session_mock.flush.return_value = None
+    session_mock.commit.return_value = None
+    session_mock.rollback.return_value = None
+    session_mock.close.return_value = None
+
+    # Appelle la fonction avec le panier et la session mockée
+    total = creer_vente(panier, session_mock)
+
+    # Vérifie le total calculé
+    assert total == (2 * 5.0 + 3 * 3.0)
+
+    # Vérifie que add a été appelé plusieurs fois (vente + lignes)
+    assert session_mock.add.call_count >= 3
+
+    # Vérifie que flush, commit et close ont été appelés
+    session_mock.flush.assert_called_once()
+    session_mock.commit.assert_called_once()
+    session_mock.close.assert_called_once()
+
+    # Vérifie que les stocks ont bien été décrémentés
+    assert produit1.quantite_stock == 8
+    assert produit2.quantite_stock == 7

@@ -3,11 +3,8 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from models.base import Base
-from services.produit_service import ajouter_produit, afficher_produits, rechercher_produit
-from unittest.mock import patch
-from database.init_db import SessionLocal
-from src.models.produit import Produit
-from src.produit_service import rechercher_produit
+from services.produit_service import afficher_produits, rechercher_produit
+from unittest.mock import patch, MagicMock
 
 @pytest.fixture(scope="function")
 def session():
@@ -18,19 +15,16 @@ def session():
     yield session
     session.close()
 
-def test_ajouter_et_afficher_produit(capsys):
-    session = SessionLocal()
-    try:
-        ajouter_produit("Test Produit", 9.99, 10)
+def test_afficher_produits_aucun(capsys):
+    with patch("services.produit_service.SessionLocal") as mock_session_local:
+        mock_session = MagicMock()
+        mock_session.query().all.return_value = []
+        mock_session_local.return_value = mock_session
 
         afficher_produits()
-        captured = capsys.readouterr()
 
-        assert "Test Produit" in captured.out
-        assert "9.99$" in captured.out
-    finally:
-        session.rollback()
-        session.close()
+        captured = capsys.readouterr()
+        assert "Aucun produit trouvé." in captured.out
 
 def test_rechercher_produit(capsys):
 
