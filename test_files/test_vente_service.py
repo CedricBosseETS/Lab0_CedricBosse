@@ -3,7 +3,8 @@ from services.produit_service import ajouter_produit, rechercher_produit
 from services.vente_service import creer_vente
 
 def test_creer_vente():
-    """Test qui fait une vente mais s'assure qu'il y a quelque chose dans la DB, ensuite vérifie la quantité"""
+    """Test qui fait une vente mais s'assure qu'il y a quelque chose dans la DB,
+      ensuite vérifie la quantité"""
     ajouter_produit("Produit Vente", 5.00, 5)
     produit = rechercher_produit("Produit Vente")
 

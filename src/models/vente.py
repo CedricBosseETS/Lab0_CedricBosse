@@ -4,6 +4,7 @@ from sqlalchemy import Column, Integer, DateTime, Float
 from sqlalchemy.orm import relationship
 from models.base import Base
 
+# pylint: disable=too-few-public-methods
 class Vente(Base):
     """Représente une vente"""
     __tablename__ = "ventes"

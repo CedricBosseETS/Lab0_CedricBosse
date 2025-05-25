@@ -5,10 +5,11 @@ from models.vente_produit import VenteProduit
 from database.init_db import SessionLocal
 
 def faire_vente():
-    """Affiche le menu de vente pour l'utilisateur et lance la requête à la DB avec ce qu'il a choisis"""
+    """Affiche le menu de vente pour l'utilisateur et 
+    lance la requête à la DB avec ce qu'il a choisis"""
     session = SessionLocal()
     panier = []
-    quantites_temp = {} 
+    quantites_temp = {}
 
     try:
         while True:
@@ -126,4 +127,3 @@ def annuler_vente():
         print(f"Erreur lors de l’annulation : {e}")
     finally:
         session.close()
-

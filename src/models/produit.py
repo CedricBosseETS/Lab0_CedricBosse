@@ -2,6 +2,7 @@
 from sqlalchemy import Column, Integer, String, Float
 from models.base import Base
 
+# pylint: disable=too-few-public-methods
 class Produit(Base):
     """Représente un produit"""
     __tablename__ = "produits"

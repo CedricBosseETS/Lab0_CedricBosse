@@ -13,7 +13,10 @@ def afficher_produits():
 
         print("\n--- Liste des produits ---")
         for produit in produits:
-            print(f"[{produit.id}] {produit.nom} - {produit.prix:.2f}$ (Stock: {produit.quantite_stock})")
+            print(
+                f"[{produit.id}] {produit.nom} - {produit.prix:.2f}$ "
+                f"(Stock: {produit.quantite_stock})"
+            )
     finally:
         session.close()
 
@@ -27,7 +30,10 @@ def rechercher_produit():
         if terme.isdigit():
             produit = session.query(Produit).filter_by(id=int(terme)).first()
             if produit:
-                print(f"[{produit.id}] {produit.nom} - {produit.prix:.2f}$ (Stock: {produit.quantite_stock})")
+                print(
+                    f"[{produit.id}] {produit.nom} - {produit.prix:.2f}$ "
+                    f"(Stock: {produit.quantite_stock})"
+                )
             else:
                 print("Aucun produit trouvé avec cet identifiant.")
         else:
@@ -43,3 +49,17 @@ def rechercher_produit():
         print(f"Erreur lors de la recherche : {e}")
     finally:
         session.close()
+
+def ajouter_produit(nom: str, prix: float, quantite: int, session):
+    """
+    Ajoute un produit à la base de données.
+
+    :param nom: Le nom du produit
+    :param prix: Le prix unitaire du produit
+    :param quantite: La quantité en stock
+    :param session: La session SQLAlchemy pour effectuer l'opération
+    """
+    nouveau_produit = Produit(nom=nom, prix=prix, quantite=quantite)
+    session.add(nouveau_produit)
+    session.commit()
+    return nouveau_produit

@@ -1,12 +1,12 @@
 """Fichier de test qui touche les produits"""
-from services.produit_service import ajouter_produit, lister_produits, rechercher_produit
+from services.produit_service import ajouter_produit, afficher_produits, rechercher_produit
 
 
-def test_ajouter_et_lister_produit():
+def test_ajouter_et_afficher_produit():
     """Ajouter un produit fictif"""
     ajouter_produit("Test Produit", 9.99, 10)
 
-    produits = lister_produits()
+    produits = afficher_produits()
     noms = [p.nom for p in produits]
 
     assert "Test Produit" in noms

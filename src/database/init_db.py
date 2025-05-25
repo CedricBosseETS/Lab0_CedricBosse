@@ -1,4 +1,5 @@
-"""Ce module sert à la création de la base de donnée MySQL et à la gestion des sessions pour les usagers multiple"""
+"""Ce module sert à la création de la base de donnée MySQL
+ et à la gestion des sessions pour les usagers multiple"""
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker

@@ -1,3 +1,5 @@
+"""Fichier principal de l'application. 
+Gère le menu principal et les appels."""
 from database.init_db import init_db
 from services.produit_service import afficher_produits
 from services.vente_service import faire_vente
