@@ -50,7 +50,7 @@ def rechercher_produit():
     finally:
         session.close()
 
-def ajouter_produit(nom: str, prix: float, quantite: int, session):
+def ajouter_produit(nom: str, prix: float, quantite: int):
     """
     Ajoute un produit à la base de données.
 
@@ -59,6 +59,7 @@ def ajouter_produit(nom: str, prix: float, quantite: int, session):
     :param quantite: La quantité en stock
     :param session: La session SQLAlchemy pour effectuer l'opération
     """
+    session = SessionLocal()
     nouveau_produit = Produit(nom=nom, prix=prix, quantite_stock=quantite)
     session.add(nouveau_produit)
     session.commit()

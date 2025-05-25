@@ -15,12 +15,13 @@ def session():
     yield session
     session.close()
 
-def test_creer_vente(session):
+def test_creer_vente():
     """Test qui fait une vente, vérifie que la quantité est réduite"""
-    ajouter_produit("Produit Vente", 5.00, 5, session)
-    produit = rechercher_produit(session, "Produit Vente")
+    ajouter_produit("Produit Vente", 5.00, 5)
+    produit = rechercher_produit("Produit Vente")
+    panier = []
+    panier.append((produit, 2))
+    creer_vente(panier)
 
-    creer_vente([{"produit_id": produit.id, "quantite": 2}], session)
-
-    produit_mis_a_jour = rechercher_produit(session, str(produit.id))
+    produit_mis_a_jour = rechercher_produit(str(produit.id))
     assert produit_mis_a_jour.quantite_stock == 3

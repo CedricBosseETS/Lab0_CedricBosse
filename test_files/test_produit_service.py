@@ -14,20 +14,20 @@ def session():
     yield session
     session.close()
 
-def test_ajouter_et_afficher_produit(session):
+def test_ajouter_et_afficher_produit():
     """Ajouter un produit fictif"""
-    ajouter_produit("Test Produit", 9.99, 10, session)
+    ajouter_produit("Test Produit", 9.99, 10)
 
     produits = afficher_produits(session)
     noms = [p.nom for p in produits]
 
     assert "Test Produit" in noms
 
-def test_rechercher_produit(session):
+def test_rechercher_produit():
     """Cherche un produit dans la DB (il doit exister)"""
-    produit = ajouter_produit("Test Produit", 9.99, 10, session)
+    produit = ajouter_produit("Test Produit", 9.99, 10)
 
-    produit_retrouve = rechercher_produit(session, "Test Produit")
+    produit_retrouve = rechercher_produit("Test Produit")
     assert produit_retrouve is not None
     assert produit_retrouve.nom == "Test Produit"
 

@@ -61,8 +61,9 @@ def faire_vente():
         session.close()
 
 
-def creer_vente(panier, session):
+def creer_vente(panier):
     """Fait la requête à la DB et mets à jour les items disponibles et leurs quantités"""
+    session = SessionLocal()
     try:
         total = sum(p.prix * q for p, q in panier)
 
