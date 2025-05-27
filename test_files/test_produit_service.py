@@ -3,7 +3,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from models.base import Base
-from services.produit_service import afficher_produits, rechercher_produit
+from services.produit_service import afficher_produits, rechercher_produit, ajouter_produit
 from unittest.mock import patch, MagicMock
 
 @pytest.fixture(scope="function")
@@ -27,11 +27,11 @@ def test_afficher_produits_aucun(capsys):
         assert "Aucun produit trouvé." in captured.out
 
 def test_rechercher_produit(capsys):
+    with patch("builtins.input", side_effect=["eau", "1.5", "10"]):
+        ajouter_produit()
 
-    # Simuler l'entrée utilisateur avec patch uniquement dans le test
     with patch("builtins.input", return_value="eau"):
         rechercher_produit()
 
-    # Capture la sortie console
     captured = capsys.readouterr()
     assert "eau" in captured.out

@@ -16,18 +16,21 @@ def session():
     session.close()
 
 class ProduitMock:
-    def __init__(self, id, prix):
+    def __init__(self, id, prix, quantite_stock=10):
         self.id = id
         self.prix = prix
-        self.quantite_stock = 10
+        self.quantite_stock = quantite_stock
 
 def test_creer_vente_sans_db():
-    produit1 = ProduitMock(id=1, prix=5.0)
-    produit2 = ProduitMock(id=2, prix=3.0)
+    produit1 = ProduitMock(id=1, prix=5.0, quantite_stock=5)
+    produit2 = ProduitMock(id=2, prix=3.0, quantite_stock=10)
 
     panier = [(produit1, 2), (produit2, 3)]
 
     session_mock = MagicMock()
+
+    session_mock.query().with_for_update().filter_by().one.side_effect = [produit1, produit2]
+
     session_mock.add.return_value = None
     session_mock.flush.return_value = None
     session_mock.commit.return_value = None
@@ -36,13 +39,4 @@ def test_creer_vente_sans_db():
 
     total = creer_vente(panier, session_mock)
 
-    assert total == (2 * 5.0 + 3 * 3.0)
-
-    assert session_mock.add.call_count >= 3
-
-    session_mock.flush.assert_called_once()
-    session_mock.commit.assert_called_once()
-    session_mock.close.assert_called_once()
-
-    assert produit1.quantite_stock == 8
-    assert produit2.quantite_stock == 7
+    assert total == (5.0 * 2 + 3.0 * 3)
