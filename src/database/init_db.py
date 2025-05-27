@@ -4,7 +4,8 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from models.base import Base
-from models.produit import Produit
+from models import *
+
 
 # Récupère les variables d'environnement
 DB_USER = os.getenv("DB_USER", "caisse_user")
@@ -26,7 +27,31 @@ engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def init_db():
-    """Instancie la base de données sans insérer de données par défaut"""
+    """Instancie la base de données et crée les magasins par défaut"""
     print("Création des tables…")
     Base.metadata.create_all(bind=engine)
+
+    session = SessionLocal()
+    try:
+        if session.query(Magasin).count() == 0:
+            magasins = [
+                Magasin(nom="Magasin un", quartier="un", type="magasin"),
+                Magasin(nom="Magasin deux", quartier="deux", type="magasin"),
+                Magasin(nom="Magasin trois", quartier="trois", type="magasin"),
+                Magasin(nom="Magasin quatre", quartier="quatre", type="magasin"),
+                Magasin(nom="Magasin cinq", quartier="cinq", type="magasin"),
+                Magasin(nom="Centre logistique", quartier="Centre logistique", type="logistique"),
+                Magasin(nom="Maison mère", quartier="Administration", type="admin"),
+            ]
+            session.add_all(magasins)
+            session.commit()
+            print("Magasins de base créés.")
+        else:
+            print("Magasins déjà présents, rien à faire.")
+    except Exception as e:
+        session.rollback()
+        print("Erreur lors de la création des magasins :", e)
+    finally:
+        session.close()
+
     print("Base de données initialisée.")

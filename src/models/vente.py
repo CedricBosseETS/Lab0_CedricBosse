@@ -1,6 +1,6 @@
 """Représente les ventes dans la DB"""
 from datetime import datetime
-from sqlalchemy import Column, Integer, DateTime, Float
+from sqlalchemy import Column, Integer, DateTime, Float, ForeignKey
 from sqlalchemy.orm import relationship
 from models.base import Base
 
@@ -12,5 +12,8 @@ class Vente(Base):
     id = Column(Integer, primary_key=True)
     date_heure = Column(DateTime, default=datetime.utcnow)
     total = Column(Float, nullable=False)
+
+    magasin_id = Column(Integer, ForeignKey("magasins.id"), nullable=False)
+    magasin = relationship("Magasin", back_populates="ventes")
 
     produits = relationship("VenteProduit", back_populates="vente", cascade="all, delete-orphan")
