@@ -49,3 +49,43 @@ def rechercher_produit():
         print(f"Erreur lors de la recherche : {e}")
     finally:
         session.close()
+
+def ajouter_produit():
+    """Demande à l'utilisateur d'entrer un nouveau produit et l'ajoute en base."""
+    session = SessionLocal()
+    try:
+        nom = input("Nom du produit : ").strip()
+        if not nom:
+            print("Nom invalide.")
+            return
+
+        try:
+            prix = float(input("Prix du produit (ex: 12.50) : "))
+            if prix < 0:
+                print("Le prix doit être positif.")
+                return
+        except ValueError:
+            print("Prix invalide.")
+            return
+
+        try:
+            quantite = int(input("Quantité en stock : "))
+            if quantite < 0:
+                print("La quantité doit être positive ou nulle.")
+                return
+        except ValueError:
+            print("Quantité invalide.")
+            return
+
+        nouveau_produit = Produit(nom=nom, prix=prix, quantite_stock=quantite)
+        session.add(nouveau_produit)
+        session.commit()
+        print(f"Produit '{nom}' ajouté avec succès.")
+
+    except Exception as e:
+        session.rollback()
+        print(f"Erreur lors de l'ajout du produit : {e}")
+
+    finally:
+        session.close()
+        

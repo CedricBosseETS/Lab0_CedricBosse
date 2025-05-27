@@ -70,7 +70,13 @@ def creer_vente(panier, session):
         session.add(vente)
         session.flush()
 
-        for produit, quantite in panier:
+        for produit_orig, quantite in panier:
+            # Récupère le produit en verrouillant la ligne pour éviter des écritures concurrentes
+            produit = session.query(Produit).with_for_update().filter_by(id=produit_orig.id).one()
+
+            if produit.quantite_stock < quantite:
+                raise Exception(f"Stock insuffisant pour le produit '{produit.nom}'.")
+
             ligne = VenteProduit(
                 vente_id=vente.id,
                 produit_id=produit.id,
@@ -85,8 +91,7 @@ def creer_vente(panier, session):
     except Exception as e:
         session.rollback()
         raise e
-    finally:
-        session.close()
+
 
 def annuler_vente():
     """Annule une vente et mets à jour les quantités disponibles"""
@@ -113,8 +118,19 @@ def annuler_vente():
             print("Annulation abandonnée.")
             return
 
+        # Verrouiller les produits impliqués dans la vente
+        produit_ids = [ligne.produit_id for ligne in vente.produits]
+        produits_a_verrouiller = (
+            session.query(Produit)
+            .filter(Produit.id.in_(produit_ids))
+            .with_for_update()
+            .all()
+        )
+        produits_dict = {p.id: p for p in produits_a_verrouiller}
+
+        # Restaurer les stocks
         for ligne in vente.produits:
-            produit = session.query(Produit).filter_by(id=ligne.produit_id).first()
+            produit = produits_dict.get(ligne.produit_id)
             if produit:
                 produit.quantite_stock += ligne.quantite
 
@@ -127,3 +143,4 @@ def annuler_vente():
         print(f"Erreur lors de l’annulation : {e}")
     finally:
         session.close()
+

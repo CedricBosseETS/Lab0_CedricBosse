@@ -8,12 +8,12 @@ Faire la commande suivante dans un environnement linux pour pouvoir utiliser l'a
 sudo apt install docker-compose
 
 ## Instructions de lancement de l'application :
-1. docker-compose down -v --remove-orphans (pour fermer un conteneur déjà existant au cas où)
+1. docker-compose down (pour fermer un conteneur déjà existant au cas où)
 2. docker compose build --no-cache
 3. docker compose run web
 
 ## Instructions de lancement des tests :
-1. docker-compose down -v --remove-orphans (pour fermer un conteneur déjà existant au cas où)
+1. docker-compose down (pour fermer un conteneur déjà existant au cas où)
 2. docker compose build --no-cache
 3. docker compose run web pytest
 

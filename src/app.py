@@ -1,10 +1,8 @@
 """Fichier principal de l'application. 
 Gère le menu principal et les appels."""
 from database.init_db import init_db
-from services.produit_service import afficher_produits
-from services.vente_service import faire_vente
-from services.vente_service import annuler_vente
-from services.produit_service import rechercher_produit
+from services.produit_service import afficher_produits, rechercher_produit, ajouter_produit
+from services.vente_service import faire_vente, annuler_vente
 
 def afficher_menu():
     """Affiche le menu de la caisse"""
@@ -13,7 +11,8 @@ def afficher_menu():
     print("2. Enregistrer une vente")
     print("3. Annuler une vente")
     print("4. Rechercher un produit (par identifiant ou nom")
-    print("5. Quitter")
+    print("5. Ajouter un produit dans le magasin")
+    print("6. Quitter")
 
 def pause():
     """Arrête le programme après chaque commande pour que l'utilisateur voit le résultat"""
@@ -40,6 +39,9 @@ def main():
             rechercher_produit()
             pause()
         elif choix == "5":
+            ajouter_produit()
+            pause()
+        elif choix == "6":
             print("Au revoir !")
             break
         else:
