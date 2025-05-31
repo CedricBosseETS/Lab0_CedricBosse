@@ -1,5 +1,4 @@
-sqlalchemy==2.0.30
-pymysql==1.1.0
-mysql-connector-python
+Django>=5.0,<6.0
+mysqlclient>=2.2.0
 pytest
-pytest-cov
+pytest-django
