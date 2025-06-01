@@ -1,11 +1,20 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-    <title>Magasins</title>
+    <meta charset="UTF-8">
+    <title>Choisir un magasin</title>
 </head>
 <body>
-    <a href="/">🏠 Home</a>
-    <h1>Liste des magasins</h1>
-    <p>Contenu à venir...</p>
+    <a href="{% url 'home' %}">🏠 Accueil</a>
+    <h1>Choisissez un magasin</h1>
+    <ul>
+        {% for magasin in magasins %}
+            <li>
+                <form action="{% url 'page_caisse' magasin.id %}" method="get">
+                    <button type="submit">{{ magasin.nom }}</button>
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
 </body>
 </html>

@@ -1,4 +1,8 @@
 from django.shortcuts import render
+from services import magasin_service
 
-def magasins_view(request):
-    return render(request, 'magasins.html')
+def page_magasins(request):
+    print("page_magasins appelée")
+    magasins = magasin_service.get_all_magasins()
+    print(f"Magasins récupérés : {magasins}")
+    return render(request, "magasins.html", {"magasins": magasins})

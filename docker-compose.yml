@@ -14,11 +14,6 @@ services:
       - "8000:8000"
     volumes:
       - .:/app
-    command:
-      - bash
-      - -c
-      - |
-        /app/wait-for-it.sh db:3306 -t 60 -- && /app/entrypoint.sh
 
   db:
     image: mysql:8.3

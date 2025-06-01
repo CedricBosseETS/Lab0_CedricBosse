@@ -1,5 +1,5 @@
 """Ce module s'occupe de gérer les accès à la DB pour tout ce qui touche aux produits"""
-from database.init_db import SessionLocal
+from src.caisse.init_db import SessionLocal
 from models.produit import Produit
 
 def afficher_produits():

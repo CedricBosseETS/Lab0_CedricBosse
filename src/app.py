@@ -1,7 +1,7 @@
 """Fichier principal de l'application. 
 Gère la sélection de l'entité (magasin, logistique, maison mère), le menu principal et les appels aux services."""
 
-from database.init_db import init_db, SessionLocal
+from src.caisse.init_db import init_db, SessionLocal
 from services.produit_service import afficher_produits, rechercher_produit, ajouter_produit, mettre_a_jour_produit
 from services.vente_service import faire_vente, annuler_vente
 from models.magasin import Magasin

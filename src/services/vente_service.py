@@ -2,7 +2,7 @@
 from models.produit import Produit
 from models.vente import Vente
 from models.vente_produit import VenteProduit
-from database.init_db import SessionLocal
+from src.caisse.init_db import SessionLocal
 
 def faire_vente():
     """Affiche le menu de vente pour l'utilisateur et 
