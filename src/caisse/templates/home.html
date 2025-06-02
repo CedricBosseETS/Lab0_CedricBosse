@@ -1,3 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Menu principal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            margin: 0;
+            padding: 40px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 40px;
+        }
+
+        a {
+            text-decoration: none;
+            margin: 10px;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            background-color: #3498db;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+
 <h1>Menu principal</h1>
-<a href="{% url 'magasins' %}"><button>Ouvrir une caisse</button></a>
-<a href="{% url 'admin_page' %}"><button>Administration</button></a>
+
+<a href="{% url 'magasins' %}">
+    <button>Ouvrir une caisse</button>
+</a>
+
+<a href="{% url 'admin_page' %}">
+    <button>Administration</button>
+</a>
+
+</body>
+</html>

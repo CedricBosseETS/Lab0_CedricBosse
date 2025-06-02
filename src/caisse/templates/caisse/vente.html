@@ -1,3 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Ventes du magasin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 30px;
+        }
+
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        a {
+            text-decoration: none;
+            color: #333;
+            background: #e0e0e0;
+            padding: 8px 12px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        a:hover {
+            background: #c0c0c0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        ul {
+            padding-left: 16px;
+            margin: 0;
+        }
+
+        button {
+            padding: 8px 16px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #c0392b;
+        }
+    </style>
+</head>
+<body>
+
 <h2>Ventes du magasin</h2>
 
 <a href="{% url 'page_caisse' magasin_id=magasin_id %}">← Retour à la caisse</a>
@@ -33,3 +111,6 @@
         {% endfor %}
     </tbody>
 </table>
+
+</body>
+</html>

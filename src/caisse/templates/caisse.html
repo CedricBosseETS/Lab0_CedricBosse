@@ -1,4 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Caisse - {{ magasin.nom }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f7f7f7;
+            margin: 0;
+            padding: 20px;
+        }
+
+        a {
+            text-decoration: none;
+            color: #333;
+            background: #e0e0e0;
+            padding: 8px 12px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        a:hover {
+            background: #c0c0c0;
+        }
+
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+        }
+
+        form {
+            margin: 20px 0;
+        }
+
+        input[type="text"] {
+            padding: 8px;
+            width: 250px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            background: #3498db;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            background: #ffffff;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .btn.btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-top: 10px;
+            display: inline-block;
+        }
+
+        .btn.btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+
 <a href="{% url 'home' %}">🏠 Accueil</a>
+
 <h1>Caisse pour le magasin {{ magasin.nom }}</h1>
 
 <h3>Recherche de produit</h3>
@@ -26,9 +112,7 @@
     <h2>Produits disponibles</h2>
     <ul>
         {% for stock in stocks %}
-            <li>
-                {{ stock.produit.nom }} — Quantité: {{ stock.quantite }}
-            </li>
+            <li>{{ stock.produit.nom }} — Quantité: {{ stock.quantite }}</li>
         {% empty %}
             <li>Aucun produit en stock</li>
         {% endfor %}
@@ -44,5 +128,8 @@
 </form>
 
 <a href="{% url 'liste_ventes' magasin_id=magasin.id %}" class="btn btn-secondary">
-  Voir les ventes
+    Voir les ventes
 </a>
+
+</body>
+</html>

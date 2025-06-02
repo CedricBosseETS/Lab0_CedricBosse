@@ -3,18 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <title>Choisir un magasin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f9f9f9;
+            margin: 0;
+            padding: 30px;
+        }
+
+        a {
+            text-decoration: none;
+            color: #333;
+            background: #e0e0e0;
+            padding: 8px 12px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        a:hover {
+            background: #c0c0c0;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            margin: 10px 0;
+        }
+
+        form {
+            display: inline;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+    </style>
 </head>
 <body>
-    <a href="{% url 'home' %}">🏠 Accueil</a>
-    <h1>Choisissez un magasin</h1>
-    <ul>
-        {% for magasin in magasins %}
-            <li>
-                <form action="{% url 'page_caisse' magasin.id %}" method="get">
-                    <button type="submit">{{ magasin.nom }}</button>
-                </form>
-            </li>
-        {% endfor %}
-    </ul>
+
+<a href="{% url 'home' %}">🏠 Accueil</a>
+
+<h1>Choisissez un magasin</h1>
+
+<ul>
+    {% for magasin in magasins %}
+        <li>
+            <form action="{% url 'page_caisse' magasin.id %}" method="get">
+                <button type="submit">{{ magasin.nom }}</button>
+            </form>
+        </li>
+    {% endfor %}
+</ul>
+
 </body>
 </html>
