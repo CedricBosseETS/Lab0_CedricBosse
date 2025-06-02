@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from services import magasin_service, stock_service
+from services import magasin_service, stock_service, produit_service
 from caisse.models import Produit, Magasin
 from django.contrib import messages
 
@@ -13,11 +13,25 @@ def page_caisse(request, magasin_id):
 
     context = {
         "magasin": magasin,
+        "magasin_id": magasin_id,  # ← ajoute ceci !
         "afficher_produits": afficher_produits,
         "stocks": stocks,
     }
 
     return render(request, "caisse.html", context)
+
+def rechercher_produit(request, magasin_id):
+    query = request.GET.get('q', '').strip()
+    produits_recherches = []
+
+    if query:
+        produits_recherches = produit_service.rechercher_produits_par_nom_ou_id(query)
+
+    return render(request, 'caisse.html', {
+        'magasin': magasin_service.get_magasin_by_id(magasin_id),
+        'magasin_id': magasin_id,
+        'produits_recherches': produits_recherches,
+    })
 
 def reapprovisionnement_view(request, magasin_id):
     magasin = magasin_service.get_magasin_by_id(magasin_id)

@@ -7,6 +7,7 @@ urlpatterns = [
     path('admin_page/', admin_page.admin_view, name='admin_page'),
     path('caisse/<int:magasin_id>/', caisse.page_caisse, name='page_caisse'),
     path('reapprovisionner/<int:magasin_id>/', caisse.reapprovisionnement_view, name='reapprovisionner'),
+    path('<int:magasin_id>/recherche/', caisse.rechercher_produit, name='rechercher_produit'),
 
     path("magasin/<int:magasin_id>/panier/", panier.afficher_panier, name="panier"),
     path("magasin/<int:magasin_id>/panier/", panier.afficher_panier, name="afficher_panier"),

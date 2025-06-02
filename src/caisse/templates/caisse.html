@@ -1,7 +1,24 @@
 <a href="{% url 'home' %}">🏠 Accueil</a>
 <h1>Caisse pour le magasin {{ magasin.nom }}</h1>
 
-<form method="get">
+<h3>Recherche de produit</h3>
+<form method="get" action="{% url 'rechercher_produit' magasin_id=magasin_id %}">
+    <input type="text" name="q" placeholder="Nom ou ID du produit" required>
+    <button type="submit">Rechercher</button>
+</form>
+
+{% if produits_recherches %}
+    <h4>Résultats :</h4>
+    <ul>
+        {% for produit in produits_recherches %}
+            <li>{{ produit.nom }} — {{ produit.prix }} $</li>
+        {% empty %}
+            <li>Aucun produit trouvé.</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+<form method="get" action="{% url 'page_caisse' magasin_id=magasin_id %}">
     <button type="submit" name="action" value="afficher_produits">Afficher les produits</button>
 </form>
 
