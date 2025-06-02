@@ -10,4 +10,4 @@ class Vente(models.Model):
     magasin = models.ForeignKey(Magasin, on_delete=models.CASCADE, related_name="ventes")
 
     def __str__(self):
-        return f"Vente {self.id} - {self.total}€"
+        return f"Vente {self.id} - {self.total}$"

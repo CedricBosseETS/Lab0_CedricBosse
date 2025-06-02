@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <a href="{% url 'home' %}">🏠 Accueil</a>
+    <meta charset="UTF-8">
+    <title>Réapprovisionnement</title>
+</head>
+{% load stock_tags %}
+{% load custom_filters %}
+<body>
+    <a href="{% url 'page_caisse' magasin.id %}">⬅ Retour à la caisse</a>
+    <h1>Réapprovisionnement pour {{ magasin.nom }}</h1>
+
+    {% if messages %}
+        <ul>
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    <label for="produit_id">Produit :</label>
+    <select name="produit_id" required>
+        {% for produit_id, stock in stock_centre.items %}
+            {% with stock_local|get_item:produit_id as local_stock %}
+                <option value="{{ produit_id }}">
+                    {{ stock.produit.nom }} - Centre: {{ stock.quantite }} | Local: {{ local_stock.quantite }}
+                </option>
+            {% endwith %}
+        {% endfor %}
+    </select><br>
+
+    <label for="quantite">Quantité :</label>
+    <input type="number" name="quantite" min="1" required><br>
+
+    <button type="submit">Réapprovisionner</button>
+</form>
+
+</body>
+</html>

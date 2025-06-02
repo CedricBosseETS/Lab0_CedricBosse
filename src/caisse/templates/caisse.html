@@ -1,0 +1,27 @@
+<a href="{% url 'home' %}">🏠 Accueil</a>
+<h1>Caisse pour le magasin {{ magasin.nom }}</h1>
+
+<form method="get">
+    <button type="submit" name="action" value="afficher_produits">Afficher les produits</button>
+</form>
+
+{% if afficher_produits %}
+    <h2>Produits disponibles</h2>
+    <ul>
+        {% for stock in stocks %}
+            <li>
+                {{ stock.produit.nom }} — Quantité: {{ stock.quantite }}
+            </li>
+        {% empty %}
+            <li>Aucun produit en stock</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+<form action="{% url 'reapprovisionner' magasin.id %}" method="get">
+    <button type="submit">Réapprovisionner depuis le centre logistique</button>
+</form>
+
+<form action="{% url 'panier' magasin.id %}" method="get">
+    <button type="submit">🛒 Commencer une vente</button>
+</form>

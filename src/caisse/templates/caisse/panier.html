@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Panier</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { padding: 10px; border: 1px solid #ccc; text-align: left; }
+        form { display: inline; }
+        .btn { padding: 6px 12px; background-color: #28a745; color: white; border: none; cursor: pointer; }
+        .btn-red { background-color: #dc3545; }
+        .btn-grey { background-color: #6c757d; }
+        .btn:hover { opacity: 0.9; }
+    </style>
+</head>
+<body>
+    <h1>Panier</h1>
+
+    {% if details %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Produit</th>
+                    <th>Quantité</th>
+                    <th>Prix unitaire</th>
+                    <th>Total</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in details %}
+                    <tr>
+                        <td>{{ item.produit.nom }}</td>
+                        <td>{{ item.quantite }}</td>
+                        <td>{{ item.produit.prix }} $</td>
+                        <td>{{ item.total }} $</td>
+                        <td>
+                            <form method="post" action="{% url 'retirer_du_panier' magasin_id item.produit.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-red">Retirer</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h3>Total : {{ total_panier }} $</h3>
+
+        <form method="post" action="{% url 'finaliser_panier' magasin_id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn">Finaliser la vente</button>
+        </form>
+    {% else %}
+        <p>Le panier est vide.</p>
+    {% endif %}
+
+    <br><br>
+    <a href="{% url 'page_caisse' magasin_id %}" class="btn btn-grey">Retour à la caisse</a>
+</body>
+</html>

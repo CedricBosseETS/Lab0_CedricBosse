@@ -1,8 +1,15 @@
 from django.urls import path
-from .views import home, magasins, admin_page
+from .views import home, magasins, admin_page, caisse, panier
 
 urlpatterns = [
     path('', home.home_view, name='home'),
     path('magasins/', magasins.page_magasins, name='magasins'),
     path('admin_page/', admin_page.admin_view, name='admin_page'),
+    path('caisse/<int:magasin_id>/', caisse.page_caisse, name='page_caisse'),
+    path('reapprovisionner/<int:magasin_id>/', caisse.reapprovisionnement_view, name='reapprovisionner'),
+
+    path("magasin/<int:magasin_id>/panier/", panier.afficher_panier, name="panier"),
+    path('<int:magasin_id>/panier/ajouter/', panier.ajouter_au_panier, name='ajouter_panier'),
+    path('<int:magasin_id>/panier/retirer/<int:produit_id>/', panier.retirer_du_panier, name='retirer_du_panier'),
+    path('<int:magasin_id>/panier/finaliser/', panier.finaliser_vente, name='finaliser_panier'),
 ]
