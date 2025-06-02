@@ -51,3 +51,22 @@ def creer_vente(panier: dict, magasin_id: int) -> float:
 
     VenteProduit.objects.bulk_create(lignes)
     return total
+
+@transaction.atomic
+def annuler_vente(magasin_id: int, vente_id: int):
+    """
+    Annule une vente : supprime la vente et remet les produits dans le stock.
+    """
+    vente = Vente.objects.select_for_update().get(id=vente_id, magasin_id=magasin_id)
+    vente_produits = VenteProduit.objects.select_related('produit').filter(vente=vente)
+
+    for vp in vente_produits:
+        stock, _ = Stock.objects.select_for_update().get_or_create(
+            magasin_id=magasin_id,
+            produit=vp.produit,
+            defaults={'quantite': 0}
+        )
+        stock.quantite = F('quantite') + vp.quantite
+        stock.save()
+
+    vente.delete()

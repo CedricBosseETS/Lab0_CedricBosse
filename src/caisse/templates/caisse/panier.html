@@ -58,5 +58,22 @@
 
     <br><br>
     <a href="{% url 'page_caisse' magasin_id %}" class="btn btn-grey">Retour à la caisse</a>
+
+    <h2>Ajouter un produit</h2>
+
+<form method="post" action="{% url 'ajouter_panier' magasin.id %}">
+    {% csrf_token %}
+    <label for="produit_id">Produit :</label>
+    <select name="produit_id" id="produit_id">
+        {% for produit in produits_disponibles %}
+            <option value="{{ produit.id }}">{{ produit.nom }} ({{ produit.prix }} $)</option>
+        {% endfor %}
+    </select>
+
+    <label for="quantite">Quantité :</label>
+    <input type="number" name="quantite" id="quantite" value="1" min="1">
+
+    <button type="submit" class="btn">Ajouter au panier</button>
+</form>
 </body>
 </html>

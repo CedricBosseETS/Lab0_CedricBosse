@@ -16,6 +16,10 @@ def get_stock_dict_for_magasin(magasin_id):
     stock_list = Stock.objects.filter(magasin_id=magasin_id).select_related("produit")
     return {stock.produit.id: stock for stock in stock_list}
 
+def get_produits_disponibles(magasin_id):
+    stock_entries = Stock.objects.filter(magasin_id=magasin_id, quantite__gt=0).select_related("produit")
+    return [entry.produit for entry in stock_entries]
+
 @transaction.atomic
 def transferer_stock(produit_id, quantite, source_magasin_id, destination_magasin_id):
     source_stock = Stock.objects.select_for_update().filter(

@@ -1,7 +1,7 @@
 from django.shortcuts import redirect, render
 from services import stock_service
 from django.contrib import messages
-from caisse.models import Produit
+from caisse.models import Produit, Magasin
 from services import vente_service
 
 def ajouter_au_panier(request, magasin_id):
@@ -50,11 +50,16 @@ def afficher_panier(request, magasin_id):
         })
 
     total_panier = sum(item["total"] for item in details)
+    
+    magasin = Magasin.objects.get(id=magasin_id)
+    produits_disponibles = stock_service.get_produits_disponibles(magasin_id)  # tu dois créer cette fonction
 
     return render(request, "caisse/panier.html", {
         "details": details,
         "total_panier": total_panier,
-        "magasin_id": magasin_id
+        "magasin": magasin,
+        "magasin_id": magasin_id,
+        "produits_disponibles": produits_disponibles,
     })
 
 def finaliser_vente(request, magasin_id):

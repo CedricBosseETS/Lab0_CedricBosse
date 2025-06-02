@@ -1,0 +1,35 @@
+<h2>Ventes du magasin</h2>
+
+<a href="{% url 'page_caisse' magasin_id=magasin_id %}">← Retour à la caisse</a>
+
+<table>
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Total</th>
+            <th>Contenu</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for vente in ventes %}
+        <tr>
+            <td>{{ vente.date_heure|date:"Y-m-d H:i" }}</td>
+            <td>{{ vente.total }} $</td>
+            <td>
+                <ul>
+                    {% for item in vente.produits.all %}
+                        <li>{{ item.produit.nom }} × {{ item.quantite }} @ {{ item.prix_unitaire }} $</li>
+                    {% endfor %}
+                </ul>
+            </td>
+            <td>
+                <form action="{% url 'annuler_vente' magasin_id=magasin_id vente_id=vente.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" onclick="return confirm('Annuler cette vente ?');">Annuler</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

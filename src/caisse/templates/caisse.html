@@ -25,3 +25,7 @@
 <form action="{% url 'panier' magasin.id %}" method="get">
     <button type="submit">🛒 Commencer une vente</button>
 </form>
+
+<a href="{% url 'liste_ventes' magasin_id=magasin.id %}" class="btn btn-secondary">
+  Voir les ventes
+</a>
