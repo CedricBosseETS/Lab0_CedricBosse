@@ -1,5 +1,14 @@
 from django.db import transaction
 from caisse.models import Stock
+from django.db.models import Sum
+
+def get_stock_total_par_magasin():
+    stocks = (
+        Stock.objects
+        .values('magasin__id', 'magasin__nom')
+        .annotate(stock_total=Sum('quantite'))
+    )
+    return stocks
 
 def get_stock_par_magasin(magasin_id):
     return Stock.objects.filter(magasin_id=magasin_id).select_related('produit')

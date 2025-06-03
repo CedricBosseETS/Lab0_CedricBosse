@@ -1,0 +1,11 @@
+<h1>Administration</h1>
+<h2>Entités administratives</h2>
+<ul>
+    {% for entite in entites_admin %}
+        <li>
+            <a href="{% url 'admin_entite' entite.id %}">
+                {{ entite.nom }} ({{ entite.type }})
+            </a>
+        </li>
+    {% endfor %}
+</ul>

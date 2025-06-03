@@ -1,6 +1,7 @@
 from django.db import transaction
 from django.db.models import F
 from caisse.models import Vente, VenteProduit, Produit, Stock, Magasin
+from django.db.models import Sum
 
 @transaction.atomic
 def creer_vente(panier: dict, magasin_id: int) -> float:
@@ -70,3 +71,21 @@ def annuler_vente(magasin_id: int, vente_id: int):
         stock.save()
 
     vente.delete()
+
+def get_ventes_par_magasin():
+    ventes = (
+        Vente.objects
+        .values('magasin__id', 'magasin__nom')
+         .annotate(total_ventes=Sum('total'))
+        .order_by('-total_ventes')
+    )
+    return ventes
+
+def get_produits_les_plus_vendus():
+    produits = (
+        VenteProduit.objects
+        .values('produit__id', 'produit__nom')
+        .annotate(total_vendus=Sum('quantite'))
+        .order_by('-total_vendus')[:3]
+    )
+    return produits

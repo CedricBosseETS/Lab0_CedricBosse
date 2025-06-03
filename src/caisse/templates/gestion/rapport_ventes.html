@@ -1,0 +1,45 @@
+<h1>Rapport de ventes - {{ magasin.nom }}</h1>
+
+<h2>1. Total des ventes par magasin</h2>
+<table border="1">
+    <tr>
+        <th>Magasin</th>
+        <th>Total des ventes ($)</th>
+    </tr>
+    {% for v in ventes_par_magasin %}
+    <tr>
+        <td>{{ v.magasin__nom }}</td>
+        <td>{{ v.total_ventes|floatformat:2 }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<h2>2. Produits les plus vendus</h2>
+<table border="1">
+    <tr>
+        <th>Produit</th>
+        <th>Quantité vendue</th>
+    </tr>
+    {% for p in produits_plus_vendus %}
+    <tr>
+        <td>{{ p.produit__nom }}</td>
+        <td>{{ p.total_vendus }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<h2>3. Stocks restants par magasin</h2>
+<table border="1">
+    <tr>
+        <th>Magasin</th>
+        <th>Stock total</th>
+    </tr>
+    {% for s in stocks_restant %}
+    <tr>
+        <td>{{ s.magasin__nom }}</td>
+        <td>{{ s.stock_total }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<a href="{% url 'admin_page' %}">← Retour à la page admin</a>

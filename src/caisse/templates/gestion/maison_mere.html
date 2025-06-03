@@ -1,0 +1,8 @@
+<h1>Maison mère : {{ magasin.nom }}</h1>
+
+<ul>
+    <li><a href="{% url 'rapport_ventes' magasin.id %}">📊 Générer un rapport des ventes</a></li>
+    <li><a href="#">🔧 Autre option stratégique</a></li>
+</ul>
+
+<a href="{% url 'admin_page' %}">← Retour</a>
