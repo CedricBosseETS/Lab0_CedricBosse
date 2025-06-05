@@ -23,14 +23,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pylint
+          pip install pylint-django
 
       - name: Set PYTHONPATH
         run: echo "PYTHONPATH=$(pwd)/src" >> $GITHUB_ENV
 
       - name: Lint code
         run: |
-          pylint $(find src -name "*.py" ! -name "test_*.py") --fail-under=6.0
-
+          pylint $(find src -name "*.py" ! -name "test_*.py") \
+            --load-plugins=pylint_django \
+            --fail-under=6.0
 
   test:
     runs-on: ubuntu-latest
