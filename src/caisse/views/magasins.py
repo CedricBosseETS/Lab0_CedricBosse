@@ -1,7 +1,7 @@
 """Vues liées à l'affichage des magasins."""
 
 from django.shortcuts import render
-from services import magasin_service
+from ..services import magasin_service
 
 def page_magasins(request):
     """Affiche la liste des magasins disponibles."""

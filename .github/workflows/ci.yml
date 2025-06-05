@@ -81,9 +81,6 @@ jobs:
             sleep 2
           done
 
-      - name: Initialize DB schema
-        run: python -c "from database.init_db import init_db; init_db()"
-
       - name: Run tests
         run: pytest
 

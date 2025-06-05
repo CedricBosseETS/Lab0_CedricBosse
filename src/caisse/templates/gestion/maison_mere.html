@@ -1,3 +1,55 @@
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #fff;
+    color: #222;
+    margin: 20px;
+  }
+
+  h1 {
+    font-weight: bold;
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #ccc;
+    padding-bottom: 8px;
+  }
+
+  ul {
+    list-style-type: none;
+    padding-left: 0;
+    max-width: 350px;
+  }
+
+  ul li {
+    margin-bottom: 12px;
+  }
+
+  ul li a {
+    text-decoration: none;
+    color: #0056b3;
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+
+  ul li a:hover {
+    text-decoration: underline;
+    color: #003d80;
+  }
+
+  a.return-link {
+    display: inline-block;
+    margin-top: 30px;
+    color: #666;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  a.return-link:hover {
+    color: #0056b3;
+  }
+</style>
+
 <h1>Maison mère : {{ magasin.nom }}</h1>
 
 <ul>
@@ -6,4 +58,4 @@
     <li><a href="{% url 'modifier_produits_depuis_maison_mere' magasin.id %}">🛠️ Mettre à jour les produits</a></li>
 </ul>
 
-<a href="{% url 'admin_page' %}">← Retour</a>
+<a href="{% url 'admin_page' %}" class="return-link">← Retour</a>

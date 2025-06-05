@@ -2,7 +2,7 @@
 
 from django.shortcuts import render, redirect
 from caisse.models import Vente
-from services import vente_service
+from ..services import vente_service
 
 
 def liste_ventes(request, magasin_id):

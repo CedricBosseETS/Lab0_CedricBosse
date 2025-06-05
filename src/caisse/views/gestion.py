@@ -2,7 +2,7 @@
 
 from django.shortcuts import render, redirect
 from django.views.decorators.http import require_POST
-from services import magasin_service, vente_service, stock_service, produit_service
+from ..services import magasin_service, vente_service, stock_service, produit_service
 from caisse.models import Magasin, Produit
 
 

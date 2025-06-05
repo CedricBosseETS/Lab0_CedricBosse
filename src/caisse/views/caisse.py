@@ -3,7 +3,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 
-from services import magasin_service, stock_service, produit_service
+from ..services import magasin_service, stock_service, produit_service
 from caisse.models import Produit, Magasin
 
 

@@ -4,6 +4,7 @@ services:
     container_name: caisse-app
     environment:
       PYTHONPATH: /app/src
+      DJANGO_SETTINGS_MODULE: src.caisse_django.settings
       DB_HOST: db
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
@@ -14,7 +15,7 @@ services:
       - "8000:8000"
     volumes:
       - .:/app
-
+  
   db:
     image: mysql:8.3
     container_name: mysql-db
