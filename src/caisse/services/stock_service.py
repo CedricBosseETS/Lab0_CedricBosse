@@ -1,3 +1,4 @@
+"""Ce module gère les accès à la base de données pour tout ce qui concerne les stocks."""
 from django.db import transaction
 from django.db.models import Sum
 from caisse.models import Stock
