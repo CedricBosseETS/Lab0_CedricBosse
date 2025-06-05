@@ -29,7 +29,8 @@ jobs:
 
       - name: Lint code
         run: |
-          pylint $(find src -name "*.py") --fail-under=6.0
+          pylint $(find src -name "*.py" ! -name "test_*.py") --fail-under=6.0
+
 
   test:
     runs-on: ubuntu-latest
