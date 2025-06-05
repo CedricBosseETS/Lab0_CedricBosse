@@ -54,7 +54,7 @@ jobs:
           done
 
       - name: Run tests inside the app container
-        run: docker-compose exec app pytest
+        run: docker compose exec app pytest
 
 
   build-and-push:
