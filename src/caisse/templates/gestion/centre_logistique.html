@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Centre logistique</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7fa;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 15px;
+        }
+
+        a {
+            display: inline-block;
+            text-decoration: none;
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        a:hover {
+            background-color: #2980b9;
+        }
+
+        .retour {
+            background-color: #bdc3c7;
+            color: #2c3e50;
+            margin-top: 30px;
+        }
+
+        .retour:hover {
+            background-color: #95a5a6;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Centre logistique : {{ magasin.nom }}</h1>
+
+<ul>
+    <li><a href="{% url 'approvisionner_magasin' magasin.id %}">🚚 Approvisionner un magasin</a></li>
+</ul>
+
+<a class="retour" href="{% url 'admin_page' %}">← Retour</a>
+
+</body>
+</html>

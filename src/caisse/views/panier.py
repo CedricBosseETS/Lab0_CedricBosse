@@ -1,10 +1,14 @@
+"""Vues pour la gestion du panier : ajout, retrait, affichage et finalisation de vente."""
+
 from django.shortcuts import redirect, render
-from services import stock_service
 from django.contrib import messages
+
 from caisse.models import Produit, Magasin
-from services import vente_service
+from services import stock_service, vente_service
+
 
 def ajouter_au_panier(request, magasin_id):
+    """Ajoute un produit au panier pour un magasin donné."""
     if request.method == "POST":
         produit_id = int(request.POST["produit_id"])
         quantite = int(request.POST["quantite"])
@@ -24,7 +28,9 @@ def ajouter_au_panier(request, magasin_id):
 
     return redirect("afficher_panier", magasin_id=magasin_id)
 
+
 def retirer_du_panier(request, magasin_id, produit_id):
+    """Retire un produit du panier."""
     panier = request.session.get("panier", {})
     if str(produit_id) in panier:
         del panier[str(produit_id)]
@@ -34,7 +40,9 @@ def retirer_du_panier(request, magasin_id, produit_id):
         messages.warning(request, "Produit non trouvé dans le panier.")
     return redirect("afficher_panier", magasin_id=magasin_id)
 
+
 def afficher_panier(request, magasin_id):
+    """Affiche les détails du panier avec les produits et quantités."""
     panier = request.session.get("panier", {})
     produits = Produit.objects.filter(id__in=panier.keys())
     details = []
@@ -50,9 +58,11 @@ def afficher_panier(request, magasin_id):
         })
 
     total_panier = sum(item["total"] for item in details)
-    
+
     magasin = Magasin.objects.get(id=magasin_id)
-    produits_disponibles = stock_service.get_produits_disponibles(magasin_id)  # tu dois créer cette fonction
+    produits_disponibles = stock_service.get_produits_disponibles(
+        magasin_id
+    )  # tu dois créer cette fonction
 
     return render(request, "caisse/panier.html", {
         "details": details,
@@ -62,7 +72,9 @@ def afficher_panier(request, magasin_id):
         "produits_disponibles": produits_disponibles,
     })
 
+
 def finaliser_vente(request, magasin_id):
+    """Finalise la vente en enregistrant les produits du panier."""
     panier = request.session.get("panier", {})
     if not panier:
         messages.warning(request, "Le panier est vide.")
@@ -73,6 +85,8 @@ def finaliser_vente(request, magasin_id):
         request.session["panier"] = {}
         messages.success(request, "Vente enregistrée avec succès.")
     except Exception as e:
+        # Exception générique pour capturer toute erreur inattendue
         messages.error(request, f"Erreur lors de la vente : {e}")
 
     return redirect("afficher_panier", magasin_id=magasin_id)
+

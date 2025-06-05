@@ -7,5 +7,5 @@ class Magasin(models.Model):
     quartier = models.CharField(max_length=100)
     type = models.CharField(max_length=50)
 
-    def __str__(self):
-        return self.nom
+    def __str__(self) -> str:
+        return str(self.nom)

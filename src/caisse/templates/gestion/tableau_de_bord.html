@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Tableau de bord – {{ magasin.nom }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fa;
+            margin: 0;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+            margin-bottom: 10px;
+        }
+
+        ul {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 6px rgba(0,0,0,0.08);
+            list-style-type: none;
+            margin-bottom: 30px;
+            max-width: 600px;
+        }
+
+        li {
+            margin-bottom: 8px;
+            padding: 6px;
+            border-bottom: 1px solid #eaeaea;
+        }
+
+        li:last-child {
+            border-bottom: none;
+        }
+
+        a {
+            display: inline-block;
+            text-decoration: none;
+            background-color: #e0e0e0;
+            color: #333;
+            padding: 10px 16px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        a:hover {
+            background-color: #c0c0c0;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Tableau de bord – {{ magasin.nom }}</h1>
+
+<h2>📌 Chiffre d’affaires par magasin</h2>
+<ul>
+    {% for vente in stats.ventes_par_magasin %}
+        <li>{{ vente.magasin__nom }} : {{ vente.total_ventes }} $</li>
+    {% endfor %}
+</ul>
+
+<h2>🚨 Produits en rupture de stock</h2>
+<ul>
+    {% for stock in stats.rupture_stock %}
+        <li>{{ stock.produit.nom }} à {{ stock.magasin.nom }} ({{ stock.quantite }})</li>
+    {% endfor %}
+</ul>
+
+<h2>📦 Produits en surstock</h2>
+<ul>
+    {% for stock in stats.surstock %}
+        <li>{{ stock.produit.nom }} à {{ stock.magasin.nom }} ({{ stock.quantite }})</li>
+    {% endfor %}
+</ul>
+
+<h2>📅 Tendances hebdomadaires</h2>
+<ul>
+    {% for vente in stats.ventes_hebdo %}
+        <li>{{ vente.date_heure__date }} : {{ vente.total }} $</li>
+    {% endfor %}
+</ul>
+
+<a href="{% url 'admin_page' %}">← Retour</a>
+
+</body>
+</html>

@@ -1,23 +1,106 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <a href="{% url 'home' %}">🏠 Accueil</a>
     <meta charset="UTF-8">
     <title>Réapprovisionnement</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f9f9f9;
+            margin: 0;
+            padding: 30px;
+        }
+
+        a {
+            text-decoration: none;
+            color: #333;
+            background: #e0e0e0;
+            padding: 8px 12px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        a:hover {
+            background: #c0c0c0;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 25px;
+        }
+
+        form {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+            max-width: 500px;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        select, input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #1e8449;
+        }
+
+        ul {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            border-radius: 8px;
+            padding: 15px;
+            list-style: none;
+            margin-bottom: 20px;
+            max-width: 500px;
+        }
+
+        li {
+            margin: 5px 0;
+        }
+    </style>
 </head>
 {% load stock_tags %}
 {% load custom_filters %}
 <body>
-    <a href="{% url 'page_caisse' magasin.id %}">⬅ Retour à la caisse</a>
-    <h1>Réapprovisionnement pour {{ magasin.nom }}</h1>
 
-    {% if messages %}
-        <ul>
-            {% for message in messages %}
-                <li>{{ message }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
+<a href="{% url 'home' %}">🏠 Accueil</a><br>
+<a href="{% url 'page_caisse' magasin.id %}">⬅ Retour à la caisse</a>
+
+<h1>Réapprovisionnement pour {{ magasin.nom }}</h1>
+
+{% if messages %}
+    <ul>
+        {% for message in messages %}
+            <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
 
 <form method="post">
     {% csrf_token %}
@@ -30,10 +113,10 @@
                 </option>
             {% endwith %}
         {% endfor %}
-    </select><br>
+    </select>
 
     <label for="quantite">Quantité :</label>
-    <input type="number" name="quantite" min="1" required><br>
+    <input type="number" name="quantite" min="1" required>
 
     <button type="submit">Réapprovisionner</button>
 </form>

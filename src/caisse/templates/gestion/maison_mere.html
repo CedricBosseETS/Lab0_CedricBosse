@@ -2,7 +2,8 @@
 
 <ul>
     <li><a href="{% url 'rapport_ventes' magasin.id %}">📊 Générer un rapport des ventes</a></li>
-    <li><a href="#">🔧 Autre option stratégique</a></li>
+    <li><a href="{% url 'tableau_de_bord' magasin.id %}">📈 Tableau de bord des performances</a></li>
+    <li><a href="{% url 'modifier_produits_depuis_maison_mere' magasin.id %}">🛠️ Mettre à jour les produits</a></li>
 </ul>
 
 <a href="{% url 'admin_page' %}">← Retour</a>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Approvisionnement</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7fa;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 25px;
+        }
+
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        form {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.06);
+            max-width: 600px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        select, input[type="number"] {
+            margin-top: 8px;
+            margin-bottom: 15px;
+            padding: 8px;
+            width: 100%;
+            max-width: 400px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        div {
+            margin-bottom: 12px;
+        }
+
+        button {
+            background-color: #2ecc71;
+            color: white;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #27ae60;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 30px;
+            text-decoration: none;
+            color: #333;
+            background-color: #e0e0e0;
+            padding: 10px 16px;
+            border-radius: 8px;
+        }
+
+        a:hover {
+            background-color: #c0c0c0;
+        }
+
+        strong {
+            display: inline-block;
+            width: 250px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Approvisionner un magasin depuis le centre logistique</h1>
+
+{% load custom_filters %}
+<form method="post">
+    {% csrf_token %}
+    <label for="magasin">Choisir un magasin :</label>
+    <select name="destination_magasin_id" required>
+        {% for m in magasins %}
+            {% if m.id != centre_logistique.id %}
+                <option value="{{ m.id }}">{{ m.nom }}</option>
+            {% endif %}
+        {% endfor %}
+    </select>
+
+    <h2>Produits disponibles au centre logistique :</h2>
+    {% for produit in produits %}
+        <div>
+            <strong>{{ produit.nom }}</strong> (Stock : {{ stock_centre_dict|get_item:produit.id|default:"0" }})
+            <input type="number" name="quantite_{{ produit.id }}" min="0" placeholder="Quantité à transférer">
+        </div>
+    {% endfor %}
+
+    <button type="submit">Transférer</button>
+</form>
+
+<a href="{% url 'admin_page' %}">← Retour au centre logistique</a>
+
+</body>
+</html>
