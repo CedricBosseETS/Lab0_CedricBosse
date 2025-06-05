@@ -83,7 +83,7 @@ jobs:
           done
 
       - name: Run tests
-        run: pytest
+        run: docker compose exec app pytest
 
   build-and-push:
     runs-on: ubuntu-latest
