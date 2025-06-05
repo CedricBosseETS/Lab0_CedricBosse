@@ -1,3 +1,4 @@
+# pylint: skip-file
 from unittest.mock import MagicMock
 import pytest
 from django.http import Http404
