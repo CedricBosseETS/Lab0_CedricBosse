@@ -1,27 +1,20 @@
 @startuml
-title Diagramme de déploiement - Application Caisse
-
-node "Poste Utilisateur" as client {
-    artifact "Application Console Python\n(src/app.py, services, modèles)" as app
+node "Client" as Client {
+  [Navigateur Web]
 }
 
-node "Serveur Docker" as docker_host {
-    component "Conteneur Docker - Application\n(Python + app)" as container_app
-    database "Conteneur Docker - MySQL\n(caisse_db)" as container_db
+node "Serveur Applicatif" as AppServer {
+  artifact "Docker Container\n- Django (manage.py runserver)\n- Application caisse" as DjangoApp
 }
 
-client --> container_app : Accès console (locale ou SSH)
-container_app --> container_db : Connexion via SQL Alchemy/MySQL driver
+node "Serveur Base de Données" as DBServer {
+  artifact "Docker Container\n- MySQL" as MySQLDB
+}
 
-note right of container_app
-  - Gestion des ventes
-  - Gestion produits
-  - Interaction console
-  - Services et modèles
-end note
+Client --> DjangoApp : HTTP/HTTPS
+DjangoApp --> MySQLDB : Connexion MySQL (port 3306)
 
-note right of container_db
-  - Stocke produits, ventes, stocks
-end note
+folder "Volume Docker" as Volume
+MySQLDB ..> Volume : Persistance données
 
 @enduml

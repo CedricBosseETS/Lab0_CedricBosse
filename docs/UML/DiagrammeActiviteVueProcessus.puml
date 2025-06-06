@@ -1,52 +1,28 @@
 @startuml
 start
 
-:Afficher les produits disponibles;
+:Admin visite la page de gestion de la maison mère;
+:Admin sélectionne "Modifier les produits";
 
-:Initialiser panier et quantités_temp;
+:Vue `modifier_produits_depuis_maison_mere`;
+:Appelle `produit_service.get_tous_les_produits`;
+:Affiche la page `modifier_produits.html` avec les produits;
 
-while (Utilisateur entre un ID ?) is (oui)
-  :Lire l'entrée utilisateur;
+partition "Par produit" {
+    :Admin modifie les champs (nom, prix, description);
+    :Soumet le formulaire (POST);
+}
 
-  if (Entrée == 'f') then (oui)
-    break
-  endif
+:Vue `modifier_produit`;
+:Extrait les champs `nom`, `prix`, `description`;
+:Appelle `produit_service.mettre_a_jour_produit`;
 
-  if (Entrée n'est pas un entier) then (oui)
-    :Afficher "Entrée invalide";
-  else
-    :Récupérer le produit par ID;
+:Service `mettre_a_jour_produit`:
+  - Récupère le produit par ID;
+  - Modifie les champs;
+  - Enregistre avec `.save()`;
 
-    if (Produit non trouvé) then (oui)
-      :Afficher "Produit invalide";
-    else
-      :Calculer stock disponible;
-
-      :Demander la quantité;
-
-      if (Quantité > stock dispo) then (oui)
-        :Afficher "Stock insuffisant";
-      else
-        :Ajouter au panier;
-        :Mettre à jour quantités_temp;
-        :Afficher ajout au panier;
-      endif
-    endif
-  endif
-endwhile
-
-if (Panier vide ?) then (oui)
-  :Afficher "Aucun produit sélectionné";
-  stop
-endif
-
-:Calculer total;
-
-:Créer la vente et les lignes de vente;
-:Mettre à jour le stock;
-:Commit transaction;
-
-:Afficher le total;
+:Redirige vers la page précédente;
 
 stop
 @enduml
