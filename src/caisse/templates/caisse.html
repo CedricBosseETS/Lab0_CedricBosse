@@ -2,134 +2,132 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Caisse - {{ magasin.nom }}</title>
+    <title>Caisse</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f7f7f7;
-            margin: 0;
-            padding: 20px;
-        }
-
-        a {
-            text-decoration: none;
-            color: #333;
-            background: #e0e0e0;
-            padding: 8px 12px;
-            border-radius: 8px;
-            display: inline-block;
-            margin-bottom: 15px;
-        }
-
-        a:hover {
-            background: #c0c0c0;
-        }
-
-        h1, h2, h3, h4 {
-            color: #2c3e50;
-        }
-
-        form {
-            margin: 20px 0;
-        }
-
-        input[type="text"] {
-            padding: 8px;
-            width: 250px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-        }
-
-        button {
-            padding: 8px 16px;
-            border: none;
-            background: #3498db;
-            color: white;
-            border-radius: 6px;
-            cursor: pointer;
-            margin-left: 8px;
-        }
-
-        button:hover {
-            background: #2980b9;
-        }
-
-        ul {
-            list-style: none;
-            padding: 0;
-        }
-
-        li {
-            background: #ffffff;
-            margin: 5px 0;
-            padding: 10px;
-            border-radius: 6px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .btn.btn-secondary {
-            background-color: #95a5a6;
-            color: white;
-            padding: 10px 14px;
-            border-radius: 6px;
-            margin-top: 10px;
-            display: inline-block;
-        }
-
-        .btn.btn-secondary:hover {
-            background-color: #7f8c8d;
-        }
+        /* mêmes styles que l’ancienne page */
     </style>
 </head>
 <body>
 
-<a href="{% url 'home' %}">🏠 Accueil</a>
+<a href="/">🏠 Accueil</a>
+<h1>Caisse pour le magasin <span id="nom-magasin">...</span></h1>
 
-<h1>Caisse pour le magasin {{ magasin.nom }}</h1>
+<!-- Bouton pour afficher les produits -->
+<button id="btn-afficher-produits">Afficher les produits</button>
 
-<h3>Recherche de produit</h3>
-<form method="get" action="{% url 'rechercher_produit' magasin_id=magasin_id %}">
-    <input type="text" name="q" placeholder="Nom ou ID du produit" required>
-    <button type="submit">Rechercher</button>
-</form>
+<!-- Conteneur des produits -->
+<h2>Produits disponibles</h2>
+<ul id="liste-produits">
+    <!-- Rempli dynamiquement -->
+</ul>
 
-{% if produits_recherches %}
-    <h4>Résultats :</h4>
-    <ul>
-        {% for produit in produits_recherches %}
-            <li>{{ produit.nom }} — {{ produit.prix }} $</li>
-        {% empty %}
-            <li>Aucun produit trouvé.</li>
+<script>
+    document.addEventListener("DOMContentLoaded", async () => {
+        const magasinId = "{{ magasin_id }}";
+
+        // Charger nom du magasin
+        const magasinResp = await fetch(`/api/magasins/${magasinId}/`);
+        const magasin = await magasinResp.json();
+        document.getElementById("nom-magasin").textContent = magasin.nom;
+
+        // Gérer bouton "Afficher les produits"
+        const btnAfficher = document.getElementById("btn-afficher-produits");
+        btnAfficher.addEventListener("click", async () => {
+            const ul = document.getElementById("liste-produits");
+            ul.innerHTML = ""; // vider la liste
+
+            const resp = await fetch(`/api/stocks/?magasin_id=${magasinId}`);
+            const stocks = await resp.json();
+
+            if (stocks.length === 0) {
+                ul.innerHTML = "<li>Aucun produit en stock</li>";
+            } else {
+                stocks.forEach(stock => {
+                    const li = document.createElement("li");
+                    li.textContent = `${stock.produit.nom} — Quantité: ${stock.quantite}`;
+                    ul.appendChild(li);
+                });
+            }
+        });
+    });
+</script>
+<h2>Réapprovisionnement depuis le centre logistique</h2>
+
+<form id="reappro-form">
+    <label for="produit-select">Produit :</label>
+    <select id="produit-select" name="produit_id" required>
+        <option value="" disabled selected>Choisir un produit</option>
+        {% for produit_id, stock in stock_centre.items %}
+            <option value="{{ produit_id }}">
+                {{ stock.produit.nom }} ({{ stock.quantite }} en stock)
+            </option>
         {% endfor %}
-    </ul>
-{% endif %}
+    </select>
 
-<form method="get" action="{% url 'page_caisse' magasin_id=magasin_id %}">
-    <button type="submit" name="action" value="afficher_produits">Afficher les produits</button>
+    <label for="quantite-input">Quantité :</label>
+    <input id="quantite-input" type="number" name="quantite" min="1" required />
+
+    <button type="submit">Transférer</button>
 </form>
 
-{% if afficher_produits %}
-    <h2>Produits disponibles</h2>
-    <ul>
-        {% for stock in stocks %}
-            <li>{{ stock.produit.nom }} — Quantité: {{ stock.quantite }}</li>
-        {% empty %}
-            <li>Aucun produit en stock</li>
-        {% endfor %}
-    </ul>
-{% endif %}
+<div id="reappro-message"></div>
 
-<form action="{% url 'reapprovisionner' magasin.id %}" method="get">
-    <button type="submit">Réapprovisionner depuis le centre logistique</button>
-</form>
+<script>
+    const form = document.getElementById('reappro-form');
+    const messageDiv = document.getElementById('reappro-message');
 
-<form action="{% url 'panier' magasin.id %}" method="get">
-    <button type="submit">🛒 Commencer une vente</button>
-</form>
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
 
-<a href="{% url 'liste_ventes' magasin_id=magasin.id %}" class="btn btn-secondary">
-    Voir les ventes
-</a>
+        const produitId = document.getElementById('produit-select').value;
+        const quantite = document.getElementById('quantite-input').value;
+
+        messageDiv.textContent = '';
+
+        try {
+            const response = await fetch(`/api/magasins/{{ magasin.id }}/reapprovisionner/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+                body: JSON.stringify({ produit_id: produitId, quantite: quantite }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                messageDiv.textContent = "Erreur : " + (data.error || "Erreur inconnue");
+                messageDiv.style.color = 'red';
+            } else {
+                messageDiv.textContent = data.success;
+                messageDiv.style.color = 'green';
+                form.reset();
+                // Optionnel : reload page ou mettre à jour l'affichage du stock
+                // location.reload();
+            }
+        } catch (err) {
+            messageDiv.textContent = "Erreur : " + err.message;
+            messageDiv.style.color = 'red';
+        }
+    });
+
+    // Fonction pour récupérer le CSRF token (même que précédemment)
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let c of cookies) {
+                const cookie = c.trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
 
 </body>
 </html>

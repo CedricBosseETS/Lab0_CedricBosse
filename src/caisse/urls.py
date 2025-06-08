@@ -3,10 +3,26 @@ Définit toutes les routes de l'application 'caisse' :
 accueil, gestion des magasins, caisse, panier, ventes et administration.
 """
 
-from django.urls import path
 from .views import gestion, home, magasins, caisse, panier, vente
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .api_views import MagasinViewSet, ProduitViewSet, StockViewSet, VenteViewSet, reapprovisionner_api
+
+
+router = DefaultRouter()
+router.register(r'magasins', MagasinViewSet, basename='magasin')
+router.register(r'stocks', StockViewSet, basename='stock')
+
+urlpatterns = router.urls
 
 urlpatterns = [
+    # API REST
+    path('api/', include(router.urls)),
+    path('api/magasins/<int:magasin_id>/reapprovisionner/', reapprovisionner_api, name='reapprovisionner_api'),
+
+
+
+    # Vues classiques ici
     path('', home.home_view, name='home'),
     path('magasins/', magasins.page_magasins, name='magasins'),
     path('caisse/<int:magasin_id>/', caisse.page_caisse, name='page_caisse'),
