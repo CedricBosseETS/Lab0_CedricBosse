@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Caisse</title>
     <style>
-        /* mêmes styles que l’ancienne page */
+        
     </style>
 </head>
 <body>
@@ -12,8 +12,61 @@
 <a href="/">🏠 Accueil</a>
 <h1>Caisse pour le magasin <span id="nom-magasin">...</span></h1>
 
+<h2>Recherche de produit</h2>
+
+<form id="recherche-form">
+    <input type="text" id="search" placeholder="Nom ou ID du produit" required>
+    <button type="submit">Rechercher</button>
+</form>
+
+<div id="resultats-container">
+    <h4>Résultats :</h4>
+    <ul id="resultats"></ul>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("recherche-form");
+    const results = document.getElementById("resultats");
+
+    form.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const query = document.getElementById("search").value.trim();
+        const magasinId = "{{ magasin_id }}"; 
+
+        fetch(`/api/produits/?search=${encodeURIComponent(query)}&magasin_id=${magasinId}`)
+            .then(response => {
+                if (!response.ok) throw new Error("Erreur de chargement");
+                return response.json();
+            })
+            .then(data => {
+                results.innerHTML = "";
+                if (data.length === 0) {
+                    results.innerHTML = "<li>Aucun produit trouvé.</li>";
+                } else {
+                    data.forEach(produit => {
+                        results.innerHTML += `
+                            <li>
+                                ${produit.nom} — ${produit.prix} $
+                                <input type="number" id="qte-${produit.id}" min="1" value="1" style="width: 50px;">
+                                <button onclick="ajouterAuPanier(${produit.id}, 'qte-${produit.id}')">Ajouter</button>
+                            </li>
+                        `;
+                    });
+                }
+            })
+            .catch(error => {
+                results.innerHTML = `<li>Erreur : ${error.message}</li>`;
+            });
+    });
+});
+</script>
+
 <!-- Bouton pour afficher les produits -->
 <button id="btn-afficher-produits">Afficher les produits</button>
+
+<button onclick="location.href='/panier/{{ magasin_id }}/'">Afficher le panier</button>
 
 <!-- Conteneur des produits -->
 <h2>Produits disponibles</h2>
@@ -44,7 +97,11 @@
             } else {
                 stocks.forEach(stock => {
                     const li = document.createElement("li");
-                    li.textContent = `${stock.produit.nom} — Quantité: ${stock.quantite}`;
+                    li.innerHTML = `
+                        ${stock.produit.nom} — Stock: ${stock.quantite}
+                        <input type="number" id="stock-qte-${stock.produit.id}" min="1" value="1" style="width: 50px;">
+                        <button onclick="ajouterAuPanier(${stock.produit.id}, 'stock-qte-${stock.produit.id}')">Ajouter</button>
+                    `;
                     ul.appendChild(li);
                 });
             }
@@ -72,6 +129,71 @@
 
 <div id="reappro-message"></div>
 
+<button onclick="afficherVentes()">Afficher les ventes</button>
+
+<div id="ventes-container">
+    <!-- Liste des ventes affichée ici -->
+</div>
+<script>
+async function afficherVentes() {
+    const magasinId = "{{ magasin_id }}";
+    const container = document.getElementById("ventes-container");
+    container.innerHTML = "<h3>Chargement des ventes...</h3>";
+
+    try {
+        const response = await fetch(`/api/magasins/${magasinId}/ventes/`);
+        const ventes = await response.json();
+
+        if (!response.ok) {
+            container.innerHTML = `<p style="color:red;">Erreur : ${ventes.error || "Impossible de charger les ventes."}</p>`;
+            return;
+        }
+
+        if (ventes.length === 0) {
+            container.innerHTML = "<p>Aucune vente enregistrée.</p>";
+        } else {
+            const list = document.createElement("ul");
+            ventes.forEach(vente => {
+                const item = document.createElement("li");
+                const produits = vente.produits.map(p => `${p.nom} (x${p.quantite})`).join(", ");
+                item.innerHTML = `
+                    Vente n°${vente.id} — ${vente.date} — Total: ${vente.total} $ — Produits: ${produits}
+                    <button onclick="annulerVente(${magasinId}, ${vente.id})" style="margin-left: 10px;">Annuler</button>
+                `;
+                list.appendChild(item);
+            });
+            container.innerHTML = "<h3>Historique des ventes :</h3>";
+            container.appendChild(list);
+        }
+    } catch (err) {
+        container.innerHTML = `<p style="color:red;">Erreur : ${err.message}</p>`;
+    }
+}
+
+async function annulerVente(magasinId, venteId) {
+    if (!confirm("Confirmer l'annulation de la vente n°" + venteId + " ?")) return;
+
+    try {
+        const response = await fetch(`/api/magasins/${magasinId}/ventes/${venteId}/annuler/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            alert("Erreur : " + (data.error || "Impossible d'annuler la vente."));
+        } else {
+            alert("Vente annulée avec succès.");
+            afficherVentes(); 
+        }
+    } catch (err) {
+        alert("Erreur réseau : " + err.message);
+    }
+}
+</script>
 <script>
     const form = document.getElementById('reappro-form');
     const messageDiv = document.getElementById('reappro-message');
@@ -128,6 +250,30 @@
         return cookieValue;
     }
 </script>
+<script>
+function ajouterAuPanier(produitId, inputId) {
+    const quantite = document.getElementById(inputId).value;
+    const magasinId = "{{ magasin_id }}";
 
+    fetch(`/panier/${magasinId}/ajouter/`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken")
+        },
+        body: JSON.stringify({
+            produit_id: produitId,
+            quantite: quantite
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message || "Produit ajouté au panier !");
+    })
+    .catch(error => {
+        alert("Erreur : " + error.message);
+    });
+}
+</script>
 </body>
 </html>

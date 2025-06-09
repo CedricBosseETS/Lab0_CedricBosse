@@ -83,6 +83,25 @@
         li {
             margin: 5px 0;
         }
+
+        #messageBox {
+            max-width: 500px;
+            margin-top: 20px;
+        }
+        #messageBox.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        #messageBox.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+            padding: 15px;
+        }
     </style>
 </head>
 {% load stock_tags %}
@@ -94,18 +113,10 @@
 
 <h1>Réapprovisionnement pour {{ magasin.nom }}</h1>
 
-{% if messages %}
-    <ul>
-        {% for message in messages %}
-            <li>{{ message }}</li>
-        {% endfor %}
-    </ul>
-{% endif %}
-
-<form method="post">
+<form id="reapproForm">
     {% csrf_token %}
     <label for="produit_id">Produit :</label>
-    <select name="produit_id" required>
+    <select name="produit_id" id="produit_id" required>
         {% for produit_id, stock in stock_centre.items %}
             {% with stock_local|get_item:produit_id as local_stock %}
                 <option value="{{ produit_id }}">
@@ -116,10 +127,72 @@
     </select>
 
     <label for="quantite">Quantité :</label>
-    <input type="number" name="quantite" min="1" required>
+    <input type="number" name="quantite" id="quantite" min="1" required>
 
     <button type="submit">Réapprovisionner</button>
 </form>
+
+<div id="messageBox" style="display:none;"></div>
+
+<script>
+    // Fonction pour récupérer le token CSRF depuis le cookie (Django par défaut)
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Le cookie doit commencer par le nom
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const form = document.getElementById('reapproForm');
+    const messageBox = document.getElementById('messageBox');
+    const csrftoken = getCookie('csrftoken');
+
+    form.addEventListener('submit', function(event) {
+        event.preventDefault(); // On empêche le submit classique
+
+        const produitId = document.getElementById('produit_id').value;
+        const quantite = document.getElementById('quantite').value;
+
+        fetch(`/api/centreLogistique/{{ magasin.id }}/reapprovisionner/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+                produit_id: produitId,
+                quantite: quantite
+            })
+        })
+        .then(response => response.json().then(data => ({status: response.status, body: data})))
+        .then(({status, body}) => {
+            if (status === 200 && body.success) {
+                messageBox.className = 'success';
+                messageBox.textContent = body.success;
+                messageBox.style.display = 'block';
+                form.reset();
+            } else {
+                messageBox.className = 'error';
+                messageBox.textContent = body.error || 'Une erreur est survenue.';
+                messageBox.style.display = 'block';
+            }
+        })
+        .catch(error => {
+            messageBox.className = 'error';
+            messageBox.textContent = 'Erreur réseau ou serveur.';
+            messageBox.style.display = 'block';
+        });
+    });
+</script>
 
 </body>
 </html>

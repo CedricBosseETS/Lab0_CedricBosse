@@ -3,77 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <title>Panier</title>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-        th, td { padding: 10px; border: 1px solid #ccc; text-align: left; }
-        form { display: inline; }
-        .btn { padding: 6px 12px; background-color: #28a745; color: white; border: none; cursor: pointer; }
-        .btn-red { background-color: #dc3545; }
-        .btn-grey { background-color: #6c757d; }
-        .btn:hover { opacity: 0.9; }
-    </style>
 </head>
 <body>
-    <h1>Panier</h1>
+<a href="/">🏠 Accueil</a>
+<h1>Panier du magasin {{ magasin_id }}</h1>
 
-    {% if details %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Produit</th>
-                    <th>Quantité</th>
-                    <th>Prix unitaire</th>
-                    <th>Total</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in details %}
-                    <tr>
-                        <td>{{ item.produit.nom }}</td>
-                        <td>{{ item.quantite }}</td>
-                        <td>{{ item.produit.prix }} $</td>
-                        <td>{{ item.total }} $</td>
-                        <td>
-                            <form method="post" action="{% url 'retirer_du_panier' magasin_id item.produit.id %}">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-red">Retirer</button>
-                            </form>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<ul id="liste-panier"></ul>
 
-        <h3>Total : {{ total_panier }} $</h3>
+<button onclick="finaliserVente()">Finaliser la vente</button>
 
-        <form method="post" action="{% url 'finaliser_panier' magasin_id %}">
-            {% csrf_token %}
-            <button type="submit" class="btn">Finaliser la vente</button>
-        </form>
-    {% else %}
-        <p>Le panier est vide.</p>
-    {% endif %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    fetch(`/api/panier/{{ magasin_id }}/`)
+        .then(response => response.json())
+        .then(data => {
+            const liste = document.getElementById("liste-panier");
+            liste.innerHTML = "";
+            data.panier.forEach(produit => {
+                const li = document.createElement("li");
+                li.innerHTML = `
+                    ${produit.nom} - ${produit.quantite} x ${produit.prix} $ = ${produit.quantite * produit.prix} $<br>
+                    <label>Quantité à retirer :
+                        <input type="number" min="1" max="${produit.quantite}" value="1" id="qty-${produit.id}" style="width: 50px;">
+                    </label>
+                    <button onclick="retirerDuPanier(${produit.id})">Retirer</button>
+                `;
+                liste.appendChild(li);
+            });
+        });
+});
 
-    <br><br>
-    <a href="{% url 'page_caisse' magasin_id %}" class="btn btn-grey">Retour à la caisse</a>
+function retirerDuPanier(produitId) {
+    const quantite = parseInt(document.getElementById(`qty-${produitId}`).value);
+    console.log("Retirer produit", produitId, "quantité", quantite);
+    fetch(`/api/panier/{{ magasin_id }}/retirer/`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken")
+        },
+        body: JSON.stringify({ produit_id: produitId, quantite: quantite })
+    }).then(response => {
+        if (!response.ok) {
+            console.error("Erreur API:", response.status);
+        }
+        return response.json();
+    }).then(data => {
+        console.log("Réponse API:", data);
+        location.reload();
+    });
+}
 
-    <h2>Ajouter un produit</h2>
+function finaliserVente() {
+    fetch(`/api/panier/{{ magasin_id }}/finaliser/`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken")
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        window.location.href = "/";
+    });
+}
 
-<form method="post" action="{% url 'ajouter_panier' magasin.id %}">
-    {% csrf_token %}
-    <label for="produit_id">Produit :</label>
-    <select name="produit_id" id="produit_id">
-        {% for produit in produits_disponibles %}
-            <option value="{{ produit.id }}">{{ produit.nom }} ({{ produit.prix }} $)</option>
-        {% endfor %}
-    </select>
-
-    <label for="quantite">Quantité :</label>
-    <input type="number" name="quantite" id="quantite" value="1" min="1">
-
-    <button type="submit" class="btn">Ajouter au panier</button>
-</form>
+// CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        for (let cookie of document.cookie.split(';')) {
+            const c = cookie.trim();
+            if (c.substring(0, name.length + 1) === name + '=') {
+                cookieValue = decodeURIComponent(c.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
 </body>
 </html>

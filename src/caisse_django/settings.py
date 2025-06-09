@@ -56,6 +56,13 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    )
+}
+
 CORS_ALLOW_ALL_ORIGINS = True  # Ne pas laisser en production !
 
 ROOT_URLCONF = 'caisse_django.urls'
