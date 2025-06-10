@@ -35,7 +35,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const query = document.getElementById("search").value.trim();
         const magasinId = "{{ magasin_id }}"; 
 
-        fetch(`/api/produits/?search=${encodeURIComponent(query)}&magasin_id=${magasinId}`)
+        fetch(`/api/produits/?search=${encodeURIComponent(query)}&magasin_id=${magasinId}`, {
+            credentials: 'include'
+        })
             .then(response => {
                 if (!response.ok) throw new Error("Erreur de chargement");
                 return response.json();
@@ -79,7 +81,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const magasinId = "{{ magasin_id }}";
 
         // Charger nom du magasin
-        const magasinResp = await fetch(`/api/magasins/${magasinId}/`);
+        const magasinResp = await fetch(`/api/magasins/${magasinId}/`, {
+            credentials: 'include'
+        });
         const magasin = await magasinResp.json();
         document.getElementById("nom-magasin").textContent = magasin.nom;
 
@@ -89,7 +93,9 @@ document.addEventListener("DOMContentLoaded", function () {
             const ul = document.getElementById("liste-produits");
             ul.innerHTML = ""; // vider la liste
 
-            const resp = await fetch(`/api/stocks/?magasin_id=${magasinId}`);
+            const resp = await fetch(`/api/stocks/?magasin_id=${magasinId}`, {
+                credentials: 'include'
+            });
             const stocks = await resp.json();
 
             if (stocks.length === 0) {
@@ -108,6 +114,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 </script>
+
 <h2>Réapprovisionnement depuis le centre logistique</h2>
 
 <form id="reappro-form">
@@ -141,7 +148,9 @@ async function afficherVentes() {
     container.innerHTML = "<h3>Chargement des ventes...</h3>";
 
     try {
-        const response = await fetch(`/api/magasins/${magasinId}/ventes/`);
+        const response = await fetch(`/api/magasins/${magasinId}/ventes/`, {
+            credentials: 'include'
+        });
         const ventes = await response.json();
 
         if (!response.ok) {
@@ -176,6 +185,7 @@ async function annulerVente(magasinId, venteId) {
     try {
         const response = await fetch(`/api/magasins/${magasinId}/ventes/${venteId}/annuler/`, {
             method: 'DELETE',
+            credentials: 'include',
             headers: {
                 'X-CSRFToken': getCookie('csrftoken'),
             }
@@ -194,6 +204,7 @@ async function annulerVente(magasinId, venteId) {
     }
 }
 </script>
+
 <script>
     const form = document.getElementById('reappro-form');
     const messageDiv = document.getElementById('reappro-message');
@@ -203,77 +214,41 @@ async function annulerVente(magasinId, venteId) {
 
         const produitId = document.getElementById('produit-select').value;
         const quantite = document.getElementById('quantite-input').value;
-
-        messageDiv.textContent = '';
+        const magasinId = "{{ magasin_id }}";
 
         try {
-            const response = await fetch(`/api/magasins/{{ magasin.id }}/reapprovisionner/`, {
+            const response = await fetch(`/api/stocks/reapprovisionner/`, {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-CSRFToken': getCookie('csrftoken')
                 },
-                body: JSON.stringify({ produit_id: produitId, quantite: quantite }),
+                body: JSON.stringify({
+                    magasin_id: magasinId,
+                    produit_id: produitId,
+                    quantite: quantite
+                })
             });
 
             const data = await response.json();
 
             if (!response.ok) {
-                messageDiv.textContent = "Erreur : " + (data.error || "Erreur inconnue");
-                messageDiv.style.color = 'red';
+                messageDiv.innerHTML = `<p style="color:red;">Erreur : ${data.error || "Échec du réapprovisionnement."}</p>`;
             } else {
-                messageDiv.textContent = data.success;
-                messageDiv.style.color = 'green';
-                form.reset();
-                // Optionnel : reload page ou mettre à jour l'affichage du stock
-                // location.reload();
+                messageDiv.innerHTML = `<p style="color:green;">Réapprovisionnement effectué avec succès.</p>`;
             }
         } catch (err) {
-            messageDiv.textContent = "Erreur : " + err.message;
-            messageDiv.style.color = 'red';
+            messageDiv.innerHTML = `<p style="color:red;">Erreur réseau : ${err.message}</p>`;
         }
     });
 
-    // Fonction pour récupérer le CSRF token (même que précédemment)
     function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let c of cookies) {
-                const cookie = c.trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
     }
 </script>
-<script>
-function ajouterAuPanier(produitId, inputId) {
-    const quantite = document.getElementById(inputId).value;
-    const magasinId = "{{ magasin_id }}";
 
-    fetch(`/panier/${magasinId}/ajouter/`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": getCookie("csrftoken")
-        },
-        body: JSON.stringify({
-            produit_id: produitId,
-            quantite: quantite
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        alert(data.message || "Produit ajouté au panier !");
-    })
-    .catch(error => {
-        alert("Erreur : " + error.message);
-    });
-}
-</script>
 </body>
 </html>

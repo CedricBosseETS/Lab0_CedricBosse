@@ -168,6 +168,7 @@
                 'Content-Type': 'application/json',
                 'X-CSRFToken': csrftoken
             },
+            credentials: 'include',  // ✅ Ajouté pour permettre l’envoi des cookies CSRF avec CORS
             body: JSON.stringify({
                 produit_id: produitId,
                 quantite: quantite

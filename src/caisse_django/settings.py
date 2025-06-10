@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 import os
 from pathlib import Path
+from corsheaders.defaults import default_headers
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -41,6 +43,7 @@ INSTALLED_APPS = [
     
     'rest_framework',
     'corsheaders',
+    'drf_yasg',
 
     'caisse',
 ]
@@ -56,14 +59,27 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+AUTH_STATIC_TOKEN = "token_secret_ultra_long_et_unique_1234567890"
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
     )
 }
 
-CORS_ALLOW_ALL_ORIGINS = True  # Ne pas laisser en production !
+CORS_ALLOW_ALL_ORIGINS = True  
+#remplacer par ceci ou similaire 
+#CORS_ALLOWED_ORIGINS = [
+#    "http://localhost:3000",  
+#    "https://mon-client-web.com",
+#]
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'Authorization',
+]
 
 ROOT_URLCONF = 'caisse_django.urls'
 
@@ -85,6 +101,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'caisse_django.wsgi.application'
 
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'TokenAuth': {
+            'type': 'apiKey',
+            'in': 'header',
+            'name': 'Authorization',
+            'description': 'Token statique : token_secret_ultra_long_et_unique_1234567890',
+        }
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases

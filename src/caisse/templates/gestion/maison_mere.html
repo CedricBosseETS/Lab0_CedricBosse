@@ -65,7 +65,9 @@
 
 <script>
 function chargerRapportVentes(magasinId) {
-    fetch(`/api/maison_mere/${magasinId}/rapport_ventes/`)
+    fetch(`/api/maison_mere/${magasinId}/rapport_ventes/`, {
+        credentials: 'include'
+    })
         .then(response => {
             if (!response.ok) {
                 throw new Error('Erreur de chargement du rapport');
@@ -105,7 +107,9 @@ function chargerRapportVentes(magasinId) {
 </script>
 <script>
 function chargerTableauDeBord(magasinId) {
-    fetch(`/api/maison_mere/${magasinId}/tableau_de_bord/`)
+    fetch(`/api/maison_mere/${magasinId}/tableau_de_bord/`, {
+        credentials: 'include'
+    })
         .then(response => {
             if (!response.ok) {
                 throw new Error('Erreur de chargement du tableau de bord');
@@ -151,7 +155,9 @@ function chargerTableauDeBord(magasinId) {
 </script>
 <script>
 function afficherFormulaireApprovisionnement(magasinId) {
-    fetch(`/api/maison_mere/${magasinId}/donnees_approvisionnement/`)
+    fetch(`/api/maison_mere/${magasinId}/donnees_approvisionnement/`, {
+        credentials: 'include'
+    })
         .then(response => response.json())
         .then(data => {
             const container = document.getElementById("approvisionnement-container");
@@ -187,7 +193,8 @@ function afficherFormulaireApprovisionnement(magasinId) {
                 fetch(`/api/maison_mere/${magasinId}/approvisionner/`, {
                     method: 'POST',
                     headers: { 'X-CSRFToken': '{{ csrf_token }}' },
-                    body: formData
+                    body: formData,
+                    credentials: 'include'
                 })
                 .then(r => r.json())
                 .then(result => {

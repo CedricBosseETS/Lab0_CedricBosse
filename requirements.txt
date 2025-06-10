@@ -7,3 +7,4 @@ pymysql
 djangorestframework
 django-cors-headers
 requests>=2.31.0
+drf-yasg

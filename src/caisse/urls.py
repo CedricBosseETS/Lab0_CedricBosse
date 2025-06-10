@@ -8,14 +8,29 @@ from .views.panier import afficher_panier_view
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .api_views import MagasinViewSet, ProduitViewSet, StockViewSet, VenteViewSet, reapprovisionner_api, afficher_panier_api,ajouter_au_panier_api, retirer_du_panier_api, finaliser_vente_api, ventes_par_magasin_api, annuler_vente_api, rapport_ventes_api, tableau_de_bord_api, donnees_approvisionnement, approvisionner 
-
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
 
 router = DefaultRouter()
 router.register(r'magasins', MagasinViewSet, basename='magasin')
 router.register(r'stocks', StockViewSet, basename='stock')
 router.register(r'produits', ProduitViewSet, basename='produit')
 
+schema_view = get_schema_view(
+   openapi.Info(
+      title="API de la caisse",
+      default_version='v1',
+      description="Documentation des endpoints de l'API de la caisse",
+   ),
+   public=True,
+   permission_classes=(permissions.AllowAny,),
+)
+
 urlpatterns = [
+    # API Doc
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     # API REST
     path('api/', include(router.urls)),
     path('api/magasins/<int:magasin_id>/reapprovisionner/', reapprovisionner_api, name='reapprovisionner_api'),

@@ -14,23 +14,25 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-    fetch(`/api/panier/{{ magasin_id }}/`)
-        .then(response => response.json())
-        .then(data => {
-            const liste = document.getElementById("liste-panier");
-            liste.innerHTML = "";
-            data.panier.forEach(produit => {
-                const li = document.createElement("li");
-                li.innerHTML = `
-                    ${produit.nom} - ${produit.quantite} x ${produit.prix} $ = ${produit.quantite * produit.prix} $<br>
-                    <label>Quantité à retirer :
-                        <input type="number" min="1" max="${produit.quantite}" value="1" id="qty-${produit.id}" style="width: 50px;">
-                    </label>
-                    <button onclick="retirerDuPanier(${produit.id})">Retirer</button>
-                `;
-                liste.appendChild(li);
-            });
+    fetch(`/api/panier/{{ magasin_id }}/`, {
+        credentials: 'include'
+    })
+    .then(response => response.json())
+    .then(data => {
+        const liste = document.getElementById("liste-panier");
+        liste.innerHTML = "";
+        data.panier.forEach(produit => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+                ${produit.nom} - ${produit.quantite} x ${produit.prix} $ = ${produit.quantite * produit.prix} $<br>
+                <label>Quantité à retirer :
+                    <input type="number" min="1" max="${produit.quantite}" value="1" id="qty-${produit.id}" style="width: 50px;">
+                </label>
+                <button onclick="retirerDuPanier(${produit.id})">Retirer</button>
+            `;
+            liste.appendChild(li);
         });
+    });
 });
 
 function retirerDuPanier(produitId) {
@@ -42,6 +44,7 @@ function retirerDuPanier(produitId) {
             "Content-Type": "application/json",
             "X-CSRFToken": getCookie("csrftoken")
         },
+        credentials: 'include',
         body: JSON.stringify({ produit_id: produitId, quantite: quantite })
     }).then(response => {
         if (!response.ok) {
@@ -60,7 +63,8 @@ function finaliserVente() {
         headers: {
             "Content-Type": "application/json",
             "X-CSRFToken": getCookie("csrftoken")
-        }
+        },
+        credentials: 'include'
     })
     .then(res => res.json())
     .then(data => {
