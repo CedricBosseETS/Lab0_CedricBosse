@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 import MySQLdb
 import os
+from django.contrib.auth.models import User
 
 class Command(BaseCommand):
     help = "Donne les droits à l'utilisateur 'caisse_user' sur la base de test MySQL."
@@ -11,6 +12,17 @@ class Command(BaseCommand):
         root_pass = os.getenv("MYSQL_ROOT_PASSWORD", "root")
 
         self.stdout.write("Connexion à MySQL pour donner les droits sur la base de test...")
+
+        # Création du super utilisateur s'il n'existe pas
+        if not User.objects.filter(username="super_caisse_user").exists():
+            User.objects.create_superuser(
+                username="super_caisse_user",
+                email="admin@example.com",
+                password="supersecret"
+            )
+            self.stdout.write(self.style.SUCCESS("Super utilisateur 'caisse_user' créé."))
+        else:
+            self.stdout.write("Super utilisateur déjà présent, rien à faire.")
 
         try:
             conn = MySQLdb.connect(

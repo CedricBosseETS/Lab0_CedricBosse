@@ -18,6 +18,7 @@ from corsheaders.defaults import default_headers
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+SWAGGER_USE_COMPAT_RENDERERS = False
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -29,7 +30,6 @@ SECRET_KEY = 'django-insecure-s((sb_g+f-dm)m_4l!^y@*94*ro1alr#k&8$_b%je=t&(6w1fo
 DEBUG = True
 
 ALLOWED_HOSTS = ['10.194.32.173', 'localhost', '127.0.0.1']
-
 
 # Application definition
 
@@ -59,26 +59,28 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-AUTH_STATIC_TOKEN = "token_secret_ultra_long_et_unique_1234567890"
-
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.SessionAuthentication',
+    'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.TokenAuthentication',
-    )
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
 }
 
-CORS_ALLOW_ALL_ORIGINS = True  
-#remplacer par ceci ou similaire 
+# Va devoir être changer pour ce qui est en dessous
+CORS_ALLOW_ALL_ORIGINS = True
 #CORS_ALLOWED_ORIGINS = [
-#    "http://localhost:3000",  
-#    "https://mon-client-web.com",
+#    "http://localhost:3000",
+#    "http://localhost:5000",
+#    "https://10.194.32.173:5000",
 #]
-CORS_ALLOW_CREDENTIALS = True
 
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = ["GET", "POST", "OPTIONS", "PUT", "DELETE"]
 CORS_ALLOW_HEADERS = list(default_headers) + [
-    'Authorization',
+    'Authorization', 'Content-Type'
 ]
 
 ROOT_URLCONF = 'caisse_django.urls'
@@ -111,9 +113,6 @@ SWAGGER_SETTINGS = {
         }
     },
 }
-
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
     'default': {

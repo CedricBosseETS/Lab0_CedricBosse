@@ -2,6 +2,7 @@
 
 from django.core.management.base import BaseCommand
 from caisse.models import Magasin, Produit, Stock
+from django.contrib.auth.models import User
 
 
 class Command(BaseCommand):
@@ -11,6 +12,17 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.stdout.write("Initialisation de la base de données avec Django ORM...")
+
+        # Création du super utilisateur s'il n'existe pas
+        if not User.objects.filter(username="super_caisse_user").exists():
+            User.objects.create_superuser(
+                username="super_caisse_user",
+                email="admin@example.com",
+                password="supersecret"
+            )
+            self.stdout.write(self.style.SUCCESS("Super utilisateur 'caisse_user' créé."))
+        else:
+            self.stdout.write("Super utilisateur déjà présent, rien à faire.")
 
         # Création des magasins
         if Magasin.objects.count() == 0:

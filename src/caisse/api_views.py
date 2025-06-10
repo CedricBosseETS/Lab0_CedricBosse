@@ -17,7 +17,6 @@ from rest_framework.response import Response
 from django.db import transaction
 from caisse.services import stock_service, magasin_service, vente_service
 from caisse.models import Produit
-from caisse.services.require_static_token import require_static_token
 from django.views.decorators.csrf import csrf_exempt
 
 
@@ -51,9 +50,7 @@ class StockViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
     
 @csrf_exempt
-@require_static_token
 @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
 def reapprovisionner_api(request, magasin_id):
     magasin = magasin_service.get_magasin_by_id(magasin_id)
     centre_logistique = magasin_service.get_centre_logistique()
@@ -100,7 +97,6 @@ def get_panier_key(magasin_id):
     return f'panier_{magasin_id}'
 
 @csrf_exempt
-@require_static_token
 @api_view(['GET'])
 def afficher_panier_api(request, magasin_id):
     panier = request.session.get(get_panier_key(magasin_id), {})
@@ -118,7 +114,6 @@ def afficher_panier_api(request, magasin_id):
     return Response({'panier': produits})
 
 @csrf_exempt
-@require_static_token
 @api_view(['POST'])
 def ajouter_au_panier_api(request, magasin_id):
     produit_id = str(request.data.get('produit_id'))
@@ -139,7 +134,6 @@ def ajouter_au_panier_api(request, magasin_id):
     return Response({"message": f"{quantite} ajouté(s) au panier."}, status=status.HTTP_201_CREATED)
 
 @csrf_exempt
-@require_static_token
 @api_view(['POST'])
 def retirer_du_panier_api(request, magasin_id):
     produit_id = str(request.data.get('produit_id'))
@@ -159,7 +153,6 @@ def retirer_du_panier_api(request, magasin_id):
         return Response({"error": "Produit non présent dans le panier."}, status=status.HTTP_400_BAD_REQUEST)
 
 @csrf_exempt
-@require_static_token
 @api_view(['POST'])
 def finaliser_vente_api(request, magasin_id):
     panier_key = get_panier_key(magasin_id)
@@ -183,7 +176,6 @@ def finaliser_vente_api(request, magasin_id):
     }, status=status.HTTP_201_CREATED)
 
 @csrf_exempt
-@require_static_token
 @api_view(['GET'])
 def ventes_par_magasin_api(request, magasin_id):
     ventes = Vente.objects.filter(magasin_id=magasin_id).order_by('-date_heure')
@@ -206,7 +198,6 @@ def ventes_par_magasin_api(request, magasin_id):
     return Response(data)
 
 @csrf_exempt
-@require_static_token
 @api_view(['DELETE'])
 def annuler_vente_api(request, magasin_id, vente_id):
     try:
@@ -273,7 +264,6 @@ def rapport_ventes_api(request, magasin_id):
     })
 
 @csrf_exempt
-@require_static_token
 def tableau_de_bord_api(request, magasin_id):
     # 1. Chiffre d’affaires par magasin
     ventes_par_magasin = list(
@@ -317,7 +307,6 @@ def tableau_de_bord_api(request, magasin_id):
     })
 
 @csrf_exempt
-@require_static_token
 @api_view(['GET'])
 def donnees_approvisionnement(request, maison_mere_id):
     try:
@@ -346,7 +335,6 @@ def donnees_approvisionnement(request, maison_mere_id):
     return Response(data, status=status.HTTP_200_OK)
 
 @csrf_exempt
-@require_static_token
 @api_view(['POST'])
 def approvisionner(request, centre_id):
     destination_id = request.POST.get('destination_magasin_id')

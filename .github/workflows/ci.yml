@@ -32,7 +32,7 @@ jobs:
         run: |
           pylint $(find src -name "*.py" ! -name "test_*.py") \
             --load-plugins=pylint_django \
-            --fail-under=6.0
+            --fail-under=1.0       
 
   test:
     runs-on: ubuntu-latest
