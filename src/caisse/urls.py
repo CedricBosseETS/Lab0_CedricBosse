@@ -5,7 +5,7 @@ accueil, gestion des magasins, caisse, panier, ventes et administration.
 
 from .views import gestion, home, magasins, caisse, panier, vente
 from .views.panier import afficher_panier_view
-from django.urls import path, include
+from django.urls import path, include, re_path
 from rest_framework.routers import DefaultRouter
 from .api_views import MagasinViewSet, ProduitViewSet, StockViewSet, VenteViewSet, reapprovisionner_api, afficher_panier_api,ajouter_au_panier_api, retirer_du_panier_api, finaliser_vente_api, ventes_par_magasin_api, annuler_vente_api, rapport_ventes_api, tableau_de_bord_api, donnees_approvisionnement, approvisionner 
 from rest_framework import permissions
@@ -31,6 +31,8 @@ urlpatterns = [
     # API Doc
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    re_path(r'^swagger(?P<format>.json|.yaml)$',
+            schema_view.without_ui(cache_timeout=0), name='schema-json'),
     # API REST
     path('api/', include(router.urls)),
     path('api/magasins/<int:magasin_id>/reapprovisionner/', reapprovisionner_api, name='reapprovisionner_api'),

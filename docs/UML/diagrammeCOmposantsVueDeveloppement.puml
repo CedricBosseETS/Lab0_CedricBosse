@@ -1,45 +1,59 @@
 @startuml
-' Définition des composants principaux
+skinparam componentStyle rectangle
 
 package "Client" {
   [Web Browser] <<interface>>
+  [Client API (ex: Postman, Tests)] <<interface>>
 }
 
 package "src/caisse" {
-  
+
   package "views" {
-    [Views - caisse] 
-    [Views - administration]
-    [Views - panier]
-    [Views - ventes]
+    [Views - caisse] <<component>>
+    [Views - administration] <<component>>
+    [Views - panier] <<component>>
+    [Views - ventes] <<component>>
+  }
+
+  package "api_views" {
+    [API - Panier] <<component>>
+    [API - Vente] <<component>>
+    [API - Stock] <<component>>
+    [API - Produit] <<component>>
   }
 
   package "services" {
-    [ProduitService]
-    [StockService]
-    [VenteService]
-    [MagasinService]
+    [ProduitService] <<component>>
+    [StockService] <<component>>
+    [VenteService] <<component>>
+    [MagasinService] <<component>>
   }
 
   package "models" {
-    [Produit]
-    [Magasin]
-    [Vente]
-    [Stock]
+    [Produit] <<component>>
+    [Magasin] <<component>>
+    [Vente] <<component>>
+    [Stock] <<component>>
   }
 
   [Templates] <<artifact>>
 }
 
-database "Base de données" as DB
+database "Base de données (MySQL)" as DB <<database>>
 
-' Relations entre composants
+' Relations UI - Views
+[Web Browser] --> [Views - caisse] : HTTP
+[Web Browser] --> [Views - administration]
+[Web Browser] --> [Views - panier]
+[Web Browser] --> [Views - ventes]
 
-[Web Browser] --> [Views - caisse] : HTTP requests
-[Web Browser] --> [Views - administration] : HTTP requests
-[Web Browser] --> [Views - panier] : HTTP requests
-[Web Browser] --> [Views - ventes] : HTTP requests
+' Relations API
+[Client API (ex: Postman, Tests)] --> [API - Panier] : HTTP/JSON
+[Client API (ex: Postman, Tests)] --> [API - Vente]
+[Client API (ex: Postman, Tests)] --> [API - Stock]
+[Client API (ex: Postman, Tests)] --> [API - Produit]
 
+' Views -> Services
 [Views - caisse] --> [ProduitService]
 [Views - caisse] --> [StockService]
 [Views - caisse] --> [MagasinService]
@@ -54,16 +68,27 @@ database "Base de données" as DB
 
 [Views - ventes] --> [VenteService]
 
+' API -> Services
+[API - Panier] --> [StockService]
+[API - Panier] --> [VenteService]
+
+[API - Vente] --> [VenteService]
+[API - Stock] --> [StockService]
+[API - Produit] --> [ProduitService]
+
+' Templates
 [Views - caisse] --> [Templates]
 [Views - administration] --> [Templates]
 [Views - panier] --> [Templates]
 [Views - ventes] --> [Templates]
 
+' Services -> Models
 [ProduitService] --> [Produit]
 [StockService] --> [Stock]
 [VenteService] --> [Vente]
 [MagasinService] --> [Magasin]
 
+' Models -> DB
 [Produit] --> DB
 [Magasin] --> DB
 [Vente] --> DB

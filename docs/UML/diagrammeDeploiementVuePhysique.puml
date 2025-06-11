@@ -1,20 +1,24 @@
 @startuml
+skinparam nodeMargin 15
+
 node "Client" as Client {
   [Navigateur Web]
 }
 
-node "Serveur Applicatif" as AppServer {
-  artifact "Docker Container\n- Django (manage.py runserver)\n- Application caisse" as DjangoApp
+node "Docker Host" as Host {
+  
+  folder "Docker Network" as Network {
+  
+    artifact "Django Container\n- manage.py runserver\n- port 8000:8000" as DjangoApp
+    artifact "MySQL Container\n- MySQL Server\n- port 3306" as MySQLDB
+
+    DjangoApp --> MySQLDB : Connexion MySQL (port 3306)
+  }
+
+  folder "Docker Volume" as Volume
+  MySQLDB ..> Volume : Persistance données
 }
 
-node "Serveur Base de Données" as DBServer {
-  artifact "Docker Container\n- MySQL" as MySQLDB
-}
-
-Client --> DjangoApp : HTTP/HTTPS
-DjangoApp --> MySQLDB : Connexion MySQL (port 3306)
-
-folder "Volume Docker" as Volume
-MySQLDB ..> Volume : Persistance données
+Client --> DjangoApp : HTTP/HTTPS (port 5000)
 
 @enduml

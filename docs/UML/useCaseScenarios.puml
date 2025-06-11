@@ -1,19 +1,40 @@
 @startuml
-actor "Utilisateur" as User
+actor "Caissier" as Caissier
+actor "Administrateur" as Admin
 
 rectangle "Application Caisse" {
+  usecase "Se connecter" as UC0
+
   usecase "Rechercher produit" as UC1
   usecase "Ajouter produit au panier" as UC2
   usecase "Afficher panier" as UC3
   usecase "Finaliser la vente" as UC4
+  usecase "Annuler une vente" as UC5
+
+  usecase "Consulter stock" as UC6
+  usecase "Réapprovisionner stock (pour son magasin)" as UC7a
+
+  usecase "Réapprovisionner stock (global)" as UC7b
+  usecase "Gérer produits" as UC8
+  usecase "Gérer magasins" as UC9
+  usecase "Consulter rapports" as UC10
 }
 
-User --> UC1 : Recherche produit par nom ou ID
-User --> UC2 : Sélectionne produit et quantité
-User --> UC3 : Consulte le contenu du panier
-User --> UC4 : Valide la vente
+Caissier --> UC0
+Caissier --> UC1
+Caissier --> UC2
+Caissier --> UC3
+Caissier --> UC4
+Caissier --> UC5
+Caissier --> UC6
+Caissier --> UC7a
 
-UC2 --> UC3 : Met à jour le panier
-UC3 --> UC4 : Le panier est la base de la vente
+Admin --> UC0
+Admin --> UC7b
+Admin --> UC8
+Admin --> UC9
+Admin --> UC10
 
+UC2 --> UC3
+UC3 --> UC4
 @enduml
