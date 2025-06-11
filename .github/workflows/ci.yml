@@ -55,6 +55,9 @@ jobs:
             sleep 2
           done
 
+      - name: Set up Database user
+        run: docker compose exec app python manage.py init_test_db
+
       - name: Run tests inside the app container
         run: docker compose exec app pytest
 
