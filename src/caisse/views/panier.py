@@ -41,37 +41,8 @@ def retirer_du_panier(request, magasin_id, produit_id):
     return redirect("afficher_panier", magasin_id=magasin_id)
 
 
-def afficher_panier(request, magasin_id):
-    """Affiche les détails du panier avec les produits et quantités."""
-    panier = request.session.get("panier", {})
-    produits = Produit.objects.filter(id__in=panier.keys())
-    details = []
-
-    for produit in produits:
-        quantite = panier[str(produit.id)]
-        stock = stock_service.get_stock_entry(magasin_id, produit.id)
-        details.append({
-            "produit": produit,
-            "quantite": quantite,
-            "stock_dispo": stock.quantite if stock else 0,
-            "total": quantite * produit.prix,
-        })
-
-    total_panier = sum(item["total"] for item in details)
-
-    magasin = Magasin.objects.get(id=magasin_id)
-    produits_disponibles = stock_service.get_produits_disponibles(
-        magasin_id
-    )  # tu dois créer cette fonction
-
-    return render(request, "caisse/panier.html", {
-        "details": details,
-        "total_panier": total_panier,
-        "magasin": magasin,
-        "magasin_id": magasin_id,
-        "produits_disponibles": produits_disponibles,
-    })
-
+def afficher_panier_view(request, magasin_id):
+    return render(request, "caisse/panier.html", {"magasin_id": magasin_id})
 
 def finaliser_vente(request, magasin_id):
     """Finalise la vente en enregistrant les produits du panier."""

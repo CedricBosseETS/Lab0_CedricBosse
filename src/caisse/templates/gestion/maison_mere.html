@@ -53,9 +53,154 @@
 <h1>Maison mère : {{ magasin.nom }}</h1>
 
 <ul>
-    <li><a href="{% url 'rapport_ventes' magasin.id %}">📊 Générer un rapport des ventes</a></li>
-    <li><a href="{% url 'tableau_de_bord' magasin.id %}">📈 Tableau de bord des performances</a></li>
-    <li><a href="{% url 'modifier_produits_depuis_maison_mere' magasin.id %}">🛠️ Mettre à jour les produits</a></li>
+    <li><a href="#" onclick="chargerRapportVentes('{{ magasin.id }}')">📊 Générer un rapport des ventes</a></li>    
+    <li><a href="#" onclick="chargerTableauDeBord('{{ magasin.id }}')">📈 Tableau de bord des performances</a></li>
+    <!--<li><a href="#" onclick="afficherFormulaireApprovisionnement('{{ magasin.id }}')">➕ Approvisionner un magasin</a></li>-->
 </ul>
 
+<div id="rapport-ventes-container"></div>
+<div id="tableau-bord-container"></div>
+<div id="approvisionnement-container"></div>
 <a href="{% url 'admin_page' %}" class="return-link">← Retour</a>
+
+<script>
+function chargerRapportVentes(magasinId) {
+    fetch(`/api/maison_mere/${magasinId}/rapport_ventes/`, {
+        credentials: 'include'
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erreur de chargement du rapport');
+            }
+            return response.json();
+        })
+        .then(data => {
+            const container = document.getElementById("rapport-ventes-container");
+            container.innerHTML = `
+                <h2>1. Total des ventes par magasin</h2>
+                <table border="1">
+                    <tr><th>Magasin</th><th>Total des ventes ($)</th></tr>
+                    ${data.ventes_par_magasin.map(v => `
+                        <tr><td>${v.magasin}</td><td>${v.total_ventes.toFixed(2)}</td></tr>
+                    `).join('')}
+                </table>
+                <h2>2. Produits les plus vendus</h2>
+                <table border="1">
+                    <tr><th>Produit</th><th>Quantité vendue</th></tr>
+                    ${data.produits_plus_vendus.map(p => `
+                        <tr><td>${p.nom}</td><td>${p.quantite}</td></tr>
+                    `).join('')}
+                </table>
+                <h2>3. Stocks restants par magasin</h2>
+                <table border="1">
+                    <tr><th>Magasin</th><th>Stock total</th></tr>
+                    ${data.stocks_restant.map(s => `
+                        <tr><td>${s.magasin}</td><td>${s.stock}</td></tr>
+                    `).join('')}
+                </table>
+            `;
+        })
+        .catch(error => {
+            alert(error.message);
+        });
+}
+</script>
+<script>
+function chargerTableauDeBord(magasinId) {
+    fetch(`/api/maison_mere/${magasinId}/tableau_de_bord/`, {
+        credentials: 'include'
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erreur de chargement du tableau de bord');
+            }
+            return response.json();
+        })
+        .then(data => {
+            const container = document.getElementById("tableau-bord-container");
+            container.innerHTML = `
+                <h2>📌 Chiffre d’affaires par magasin</h2>
+                <ul>
+                    ${data.ventes_par_magasin.map(v =>
+                        `<li>${v['vente__magasin__nom']} : ${v.total_ventes.toFixed(2)} $</li>`
+                    ).join('')}
+                </ul>
+
+                <h2>🚨 Produits en rupture de stock</h2>
+                <ul>
+                    ${data.rupture_stock.map(s =>
+                        `<li>${s['produit__nom']} à ${s['magasin__nom']} (${s.quantite})</li>`
+                    ).join('')}
+                </ul>
+
+                <h2>📦 Produits en surstock</h2>
+                <ul>
+                    ${data.surstock.map(s =>
+                        `<li>${s['produit__nom']} à ${s['magasin__nom']} (${s.quantite})</li>`
+                    ).join('')}
+                </ul>
+
+                <h2>📅 Tendances hebdomadaires</h2>
+                <ul>
+                    ${data.ventes_hebdo.map(v =>
+                        `<li>${v['vente__date_heure__date']} : ${v.total.toFixed(2)} $</li>`
+                    ).join('')}
+                </ul>
+            `;
+        })
+        .catch(error => {
+            alert(error.message);
+        });
+}
+</script>
+<script>
+function afficherFormulaireApprovisionnement(magasinId) {
+    fetch(`/api/maison_mere/${magasinId}/donnees_approvisionnement/`, {
+        credentials: 'include'
+    })
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById("approvisionnement-container");
+            container.innerHTML = `
+                <h2>Approvisionner un magasin</h2>
+                <form id="form-approvisionnement">
+                    <label for="destination">Choisir un magasin :</label>
+                    <select name="destination_magasin_id" required>
+                        ${data.magasins.map(m => 
+                            `<option value="${m.id}">${m.nom}</option>`
+                        ).join('')}
+                    </select>
+
+                    <h3>Produits disponibles au centre logistique :</h3>
+                    ${data.produits.map(p => {
+                        const stock = data.stocks[p.id] || 0;
+                        return `
+                            <div>
+                                <strong>${p.nom}</strong> (Stock : ${stock})
+                                <input type="number" name="quantite_${p.id}" min="0" placeholder="Quantité à transférer">
+                            </div>
+                        `;
+                    }).join('')}
+
+                    <button type="submit">Transférer</button>
+                </form>
+            `;
+
+            // Ajoute écouteur au formulaire
+            document.getElementById("form-approvisionnement").onsubmit = function(e) {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                fetch(`/api/maison_mere/${magasinId}/approvisionner/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                    body: formData,
+                    credentials: 'include'
+                })
+                .then(r => r.json())
+                .then(result => {
+                    alert(result.message || "Approvisionnement effectué !");
+                });
+            };
+        });
+}
+</script>

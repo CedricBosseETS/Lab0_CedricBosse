@@ -12,7 +12,7 @@ services:
     depends_on:
       - db
     ports:
-      - "8000:8000"
+      - "5000:5000"
     volumes:
       - .:/app
   
@@ -21,7 +21,7 @@ services:
     container_name: mysql-db
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASSWORD}

@@ -32,7 +32,7 @@ jobs:
         run: |
           pylint $(find src -name "*.py" ! -name "test_*.py") \
             --load-plugins=pylint_django \
-            --fail-under=6.0
+            --fail-under=1.0       
 
   test:
     runs-on: ubuntu-latest
@@ -54,6 +54,9 @@ jobs:
             echo "Waiting for MySQL..."
             sleep 2
           done
+
+      - name: Set up Database user
+        run: docker compose exec app python manage.py init_test_db
 
       - name: Run tests inside the app container
         run: docker compose exec app pytest

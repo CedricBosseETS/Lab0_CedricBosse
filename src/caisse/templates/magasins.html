@@ -1,79 +1,53 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Choisir un magasin</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f9f9f9;
-            margin: 0;
-            padding: 30px;
-        }
-
-        a {
-            text-decoration: none;
-            color: #333;
-            background: #e0e0e0;
-            padding: 8px 12px;
-            border-radius: 8px;
-            display: inline-block;
-            margin-bottom: 20px;
-        }
-
-        a:hover {
-            background: #c0c0c0;
-        }
-
-        h1 {
-            color: #2c3e50;
-            margin-bottom: 30px;
-        }
-
-        ul {
-            list-style: none;
-            padding: 0;
-        }
-
-        li {
-            margin: 10px 0;
-        }
-
-        form {
-            display: inline;
-        }
-
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        button:hover {
-            background-color: #2980b9;
-        }
-    </style>
+    <meta charset="UTF-8" />
+    <title>Liste des magasins</title>
 </head>
 <body>
 
-<a href="{% url 'home' %}">🏠 Accueil</a>
+<h1>Liste des magasins</h1> 
 
-<h1>Choisissez un magasin</h1>
-
-<ul>
-    {% for magasin in magasins %}
-        <li>
-            <form action="{% url 'page_caisse' magasin.id %}" method="get">
-                <button type="submit">{{ magasin.nom }}</button>
-            </form>
-        </li>
-    {% endfor %}
+<ul id="magasins-list">
+    
 </ul>
+
+<a href="{% url 'home' %}">Retour à l'accueil</a>
+
+<script>
+    async function fetchMagasins() {
+        try {
+            const response = await fetch('/api/magasins/', {
+                credentials: 'include'
+            });
+            if (!response.ok) throw new Error('Erreur HTTP ' + response.status);
+            const magasins = await response.json();
+
+            const list = document.getElementById('magasins-list');
+            list.innerHTML = ''; 
+
+            if (magasins.length === 0) {
+                list.innerHTML = '<li>Aucun magasin trouvé.</li>';
+                return;
+            }
+
+            magasins.forEach(magasin => {
+                const li = document.createElement('li'); 
+                const link = document.createElement('a');
+                link.href = `/caisse/${magasin.id}/`;
+                link.textContent = `${magasin.nom} — ${magasin.quartier}`;
+                li.appendChild(link);
+                list.appendChild(li); 
+            });
+        } catch (error) {
+            console.error('Erreur lors du chargement des magasins :', error);
+            const list = document.getElementById('magasins-list');
+            list.innerHTML = '<li>Erreur de chargement.</li>';
+        }
+    }
+
+    fetchMagasins();
+</script>
 
 </body>
 </html>

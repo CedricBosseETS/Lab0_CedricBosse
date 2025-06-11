@@ -1,39 +1,49 @@
 @startuml
 
-title Diagramme de classes - Application de caisse
+title Diagramme de classes - Application de caisse (Mis à jour)
 
-' Définir les classes
+' === CLASSES ===
 class Magasin {
+    +id: AutoField
     +nom: CharField
     +quartier: CharField
-    +type: CharField
+    +type: CharField <<magasin | centre_logistique | admin>>
 }
 
 class Produit {
+    +id: AutoField
     +nom: CharField
     +prix: FloatField
     +description: TextField
 }
 
 class Stock {
+    +id: AutoField
     +quantite: IntegerField
+    +magasin: ForeignKey
+    +produit: ForeignKey
 }
 
 class Vente {
+    +id: AutoField
     +date_heure: DateTimeField
     +total: FloatField
+    +magasin: ForeignKey
 }
 
 class VenteProduit {
+    +id: AutoField
+    +vente: ForeignKey
+    +produit: ForeignKey
     +quantite: IntegerField
     +prix_unitaire: FloatField
 }
 
-' Définir les relations entre les classes
-Magasin "1" -- "many" Stock : possède >
-Produit "1" -- "many" Stock : stocké dans >
-Magasin "1" -- "many" Vente : réalise >
-Vente "1" -- "many" VenteProduit : contient >
-Produit "1" -- "many" VenteProduit : vendu dans >
+' === RELATIONS ===
+Magasin "1" -- "many" Stock : contient >
+Produit "1" -- "many" Stock : en_stock >
+Magasin "1" -- "many" Vente : effectue >
+Vente "1" -- "many" VenteProduit : comprend >
+Produit "1" -- "many" VenteProduit : vendu_dans >
 
 @enduml

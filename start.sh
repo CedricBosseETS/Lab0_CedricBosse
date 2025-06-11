@@ -17,4 +17,4 @@ echo "📦 Initialiser les données..."
 python manage.py init_db
 
 echo "🚀 Démarrage du serveur Django"
-python manage.py runserver 0.0.0.0:8000
+python manage.py runserver 0.0.0.0:5000

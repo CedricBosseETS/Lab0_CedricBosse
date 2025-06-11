@@ -8,22 +8,20 @@ from caisse.models import Produit, Magasin
 
 
 def page_caisse(request, magasin_id):
-    """Affiche la page principale de la caisse pour un magasin donné."""
+    """Affiche la page HTML de la caisse avec les produits disponibles du centre logistique pour réapprovisionnement."""
     magasin = magasin_service.get_magasin_by_id(magasin_id)
-    action = request.GET.get("action")
-    afficher_produits = action == "afficher_produits"
+    centre_logistique = magasin_service.get_centre_logistique()
+    produits_centre = stock_service.get_produits_disponibles(centre_logistique.id)
+    stock_centre, _ = stock_service.get_stock_indexed_by_produit(
+        centre_logistique.id, magasin.id
+    )
 
-    stocks = stock_service.get_stock_par_magasin(magasin_id) if afficher_produits else []
-
-    context = {
-        "magasin": magasin,
+    return render(request, "caisse.html", {
         "magasin_id": magasin_id,
-        "afficher_produits": afficher_produits,
-        "stocks": stocks,
-    }
-
-    return render(request, "caisse.html", context)
-
+        "magasin": magasin,
+        "produits_centre": produits_centre,
+        "stock_centre": stock_centre,
+    })
 
 def rechercher_produit(request, magasin_id):
     """Recherche un produit par son nom ou son identifiant dans un magasin."""

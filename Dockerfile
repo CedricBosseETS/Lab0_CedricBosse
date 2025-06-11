@@ -23,8 +23,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copier les sources, les tests et le script wait-for-it
 COPY src/ src/
-COPY wait-for-it.sh wait-for-it.sh
-RUN chmod +x wait-for-it.sh
+#COPY wait-for-it.sh wait-for-it.sh
+#RUN chmod +x wait-for-it.sh
 
 # Copier le script start.sh
 COPY start.sh start.sh

@@ -1,28 +1,35 @@
 @startuml
 start
 
-:Admin visite la page de gestion de la maison mère;
-:Admin sélectionne "Modifier les produits";
+:Admin ouvre la page d'administration;
+:Sélectionne "Modifier les produits";
 
-:Vue `modifier_produits_depuis_maison_mere`;
-:Appelle `produit_service.get_tous_les_produits`;
-:Affiche la page `modifier_produits.html` avec les produits;
-
-partition "Par produit" {
-    :Admin modifie les champs (nom, prix, description);
-    :Soumet le formulaire (POST);
+partition "Vue Django: modifier_produits_depuis_maison_mere" {
+    :Appelle produit_service.get_tous_les_produits();
+    :Affiche le template modifier_produits.html avec les produits;
 }
 
-:Vue `modifier_produit`;
-:Extrait les champs `nom`, `prix`, `description`;
-:Appelle `produit_service.mettre_a_jour_produit`;
+partition "Par produit" {
+    :Admin édite les champs (nom, prix, description);
+    :Soumet le formulaire (POST /modifier-produit);
+}
 
-:Service `mettre_a_jour_produit`:
-  - Récupère le produit par ID;
-  - Modifie les champs;
-  - Enregistre avec `.save()`;
+partition "Vue Django: modifier_produit" {
+    :Récupère les champs du formulaire;
+    :Appelle produit_service.mettre_a_jour_produit(id, nom, prix, description);
+}
 
-:Redirige vers la page précédente;
+partition "Service: produit_service" {
+    :Récupère le produit par ID;
+    if (produit existe) then (oui)
+        :Met à jour les champs;
+        :Appelle .save();
+    else (non)
+        :Retourne une erreur produit introuvable;
+    endif
+}
+
+:Redirige vers la page précédente ou affiche message de succès;
 
 stop
 @enduml
