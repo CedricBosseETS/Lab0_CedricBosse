@@ -18,7 +18,14 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-...")
 
 DEBUG = True
 
-ALLOWED_HOSTS = ["10.194.32.173", "localhost", "127.0.0.1", "app", "app1", "app2", "nginx"]
+ALLOWED_HOSTS = ["*", "10.194.32.173", "localhost", "127.0.0.1", "app", "nginx"]
+try:
+    replicas = int(os.environ.get('APP_REPLICAS', '2'))
+except ValueError:
+    replicas = 2
+
+# On ajoute app1, app2, … appN
+ALLOWED_HOSTS += [f'app-{i}' for i in range(1, replicas + 1)]
 
 # Application definition
 INSTALLED_APPS = [
