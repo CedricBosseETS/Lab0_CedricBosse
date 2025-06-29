@@ -1,8 +1,8 @@
 import json
-from warnings import filters
+import structlog
+from warnings import filters as warnings_filters
 from django.http import JsonResponse
 from django.db.models import Sum, F, ExpressionWrapper, FloatField
-from requests import Response
 from rest_framework import status, viewsets, filters
 from .models import Magasin, Produit, Stock, Vente, VenteProduit
 from .serializers import (
@@ -14,360 +14,300 @@ from .serializers import (
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.db import transaction
-from caisse.services import stock_service, magasin_service, vente_service
-from caisse.models import Produit
 from django.views.decorators.csrf import csrf_exempt
+from django.db import transaction
+from caisse.services import stock_service, magasin_service, vente_service, produit_service
+
+logger = structlog.get_logger()
 
 
 class MagasinViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Magasin.objects.filter(type='magasin')
     serializer_class = MagasinSerializer
 
-class ProduitViewSet(viewsets.ReadOnlyModelViewSet):
+    def list(self, request, *args, **kwargs):
+        logger.info("magasin_list_start", user=request.user.username, params=request.query_params)
+        resp = super().list(request, *args, **kwargs)
+        logger.info("magasin_list_end", count=len(resp.data), status_code=resp.status_code)
+        return resp
+
+
+class ProduitViewSet(viewsets.ModelViewSet):
+    queryset = Produit.objects.all()
     serializer_class = ProduitSerializer
     filter_backends = [filters.SearchFilter]
-    search_fields = ['nom', 'id']
+    search_fields = ['nom', 'description', 'id']
+
+    def list(self, request, *args, **kwargs):
+        logger.info("produit_list_start", user=request.user.username, params=request.query_params)
+        resp = super().list(request, *args, **kwargs)
+        logger.info("produit_list_end", count=len(resp.data), status_code=resp.status_code)
+        return resp
+
+    def update(self, request, *args, **kwargs):
+        produit_id = kwargs.get('pk')
+        logger.info("produit_update_start", user=request.user.username, produit_id=produit_id, data=request.data)
+        nom = request.data.get('nom')
+        prix = request.data.get('prix')
+        description = request.data.get('description')
+        if not all([nom, prix, description]):
+            logger.warning("produit_update_missing_fields", produit_id=produit_id)
+            return Response({"error": "nom, prix et description sont requis."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        try:
+            produit = produit_service.mettre_a_jour_produit(
+                produit_id=int(produit_id), nom=nom, prix=float(prix), description=description
+            )
+        except Produit.DoesNotExist:
+            logger.error("produit_not_found", produit_id=produit_id)
+            return Response({"error": "Produit non trouvé."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error("produit_update_error", produit_id=produit_id, error=str(e))
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.get_serializer(produit)
+        logger.info("produit_update_end", produit_id=produit_id)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class StockViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Stock.objects.select_related('produit', 'magasin')
+    serializer_class = StockSerializer
 
     def get_queryset(self):
+        qs = super().get_queryset()
         magasin_id = self.request.query_params.get('magasin_id')
         if magasin_id:
-            return Produit.objects.filter(stocks__magasin_id=magasin_id).distinct()
-        return Produit.objects.none()
+            return qs.filter(magasin_id=magasin_id)
+        return qs.none()
+
+    def list(self, request, *args, **kwargs):
+        logger.info("stock_list_start", user=request.user.username, params=request.query_params)
+        resp = super().list(request, *args, **kwargs)
+        logger.info("stock_list_end", count=len(resp.data), status_code=resp.status_code)
+        return resp
+
 
 class VenteViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Vente.objects.select_related('magasin').prefetch_related('venteproduit_set__produit')
     serializer_class = VenteSerializer
 
-class StockViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = StockSerializer
+    def list(self, request, *args, **kwargs):
+        logger.info("vente_list_start", user=request.user.username)
+        resp = super().list(request, *args, **kwargs)
+        logger.info("vente_list_end", count=len(resp.data), status_code=resp.status_code)
+        return resp
 
-    def get_queryset(self):
-        queryset = Stock.objects.select_related('produit')
-        magasin_id = self.request.query_params.get('magasin_id')
-        if magasin_id is not None:
-            queryset = queryset.filter(magasin_id=magasin_id)
-        return queryset
-    
+
 @csrf_exempt
 @api_view(['POST'])
-def reapprovisionner_api(request, magasin_id):
-    magasin = magasin_service.get_magasin_by_id(magasin_id)
-    centre_logistique = magasin_service.get_centre_logistique()
+@permission_classes([IsAuthenticated])
+def transferer_stock(request):
+    logger.info("transferer_stock_start", user=request.user.username, data=request.data)
+    centre = magasin_service.get_centre_logistique()
+    dest_id = request.data.get('magasin_id')
+    produits = request.data.get('produits', [])
+    errors, messages = [], []
+    for p in produits:
+        try:
+            pid = int(p.get('produit_id'))
+            qty = int(p.get('quantite'))
+            success, msg = stock_service.transferer_stock(
+                produit_id=pid,
+                quantite=qty,
+                source_magasin_id=centre.id,
+                destination_magasin_id=int(dest_id)
+            )
+            messages.append(msg)
+        except ValueError as ve:
+            errors.append(str(ve))
+        except Exception as e:
+            errors.append(str(e))
+    status_code = status.HTTP_200_OK if not errors else status.HTTP_400_BAD_REQUEST
+    payload = {"details": messages} if not errors else {"error": errors}
+    logger.info("transferer_stock_end", status_code=status_code, errors=errors)
+    return Response(payload, status=status_code)
 
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_panier(request, magasin_id):
+    logger.info("get_panier_start", user=request.user.username, magasin_id=magasin_id)
+    panier = stock_service.get_panier(magasin_id)
+    serializer = StockSerializer(panier, many=True)
+    logger.info("get_panier_end", count=len(serializer.data))
+    return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def ajouter_au_panier(request, magasin_id):
+    logger.info("ajouter_au_panier_start", user=request.user.username, magasin_id=magasin_id, data=request.data)
     produit_id = request.data.get('produit_id')
     quantite = request.data.get('quantite')
-
-    # Validation basique
-    if not produit_id or not quantite:
-        return Response({"error": "Produit et quantité sont requis."}, status=status.HTTP_400_BAD_REQUEST)
-
     try:
-        produit = Produit.objects.get(id=produit_id)
-    except Produit.DoesNotExist:
-        return Response({"error": "Produit invalide."}, status=status.HTTP_400_BAD_REQUEST)
-
-    try:
-        quantite = int(quantite)
-        if quantite <= 0:
-            return Response({"error": "La quantité doit être un entier positif."}, status=status.HTTP_400_BAD_REQUEST)
-    except ValueError:
-        return Response({"error": "La quantité doit être un entier."}, status=status.HTTP_400_BAD_REQUEST)
-
-    # Vérifier que le produit existe dans le stock du centre logistique avec assez de stock
-    stock_centre = stock_service.get_stock_entry(centre_logistique.id, produit_id)
-    if not stock_centre or stock_centre.quantite < quantite:
-        return Response({"error": "Stock insuffisant au centre logistique."}, status=status.HTTP_400_BAD_REQUEST)
-
-    # Transaction atomique pour le transfert de stock
-    try:
-        with transaction.atomic():
-            success, msg = stock_service.transferer_stock(
-                produit_id,
-                quantite,
-                centre_logistique.id,
-                magasin.id
-            )
+        panier = stock_service.ajouter_au_panier(magasin_id, produit_id, quantite)
     except Exception as e:
+        logger.error("ajouter_au_panier_error", error=str(e))
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    serializer = StockSerializer(panier, many=True)
+    logger.info("ajouter_au_panier_end", count=len(serializer.data))
+    return Response(serializer.data)
 
-    return Response({"success": msg}, status=status.HTTP_201_CREATED)
 
-def get_panier_key(magasin_id):
-    return f'panier_{magasin_id}'
-
-@csrf_exempt
-@api_view(['GET'])
-def afficher_panier_api(request, magasin_id):
-    panier = request.session.get(get_panier_key(magasin_id), {})
-    produits = []
-
-    for produit_id, quantite in panier.items():
-        try:
-            produit = Produit.objects.get(id=produit_id)
-            data = ProduitSerializer(produit).data
-            data['quantite'] = quantite
-            produits.append(data)
-        except Produit.DoesNotExist:
-            continue
-
-    return Response({'panier': produits})
-
-@csrf_exempt
 @api_view(['POST'])
-def ajouter_au_panier_api(request, magasin_id):
-    produit_id = str(request.data.get('produit_id'))
-    quantite = int(request.data.get('quantite', 1))
-
+@permission_classes([IsAuthenticated])
+def retirer_du_panier(request, magasin_id):
+    logger.info("retirer_du_panier_start", user=request.user.username, magasin_id=magasin_id, data=request.data)
+    produit_id = request.data.get('produit_id')
+    quantite = request.data.get('quantite')
     try:
-        Produit.objects.get(id=produit_id)
-    except Produit.DoesNotExist:
-        return Response({"error": "Produit introuvable."}, status=status.HTTP_404_NOT_FOUND)
+        panier = stock_service.retirer_du_panier(magasin_id, produit_id, quantite)
+    except Exception as e:
+        logger.error("retirer_du_panier_error", error=str(e))
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    serializer = StockSerializer(panier, many=True)
+    logger.info("retirer_du_panier_end", count=len(serializer.data))
+    return Response(serializer.data)
 
-    panier_key = get_panier_key(magasin_id)
-    panier = request.session.get(panier_key, {})
 
-    panier[produit_id] = panier.get(produit_id, 0) + quantite
-    request.session[panier_key] = panier
-    request.session.modified = True
-
-    return Response({"message": f"{quantite} ajouté(s) au panier."}, status=status.HTTP_201_CREATED)
-
-@csrf_exempt
 @api_view(['POST'])
-def retirer_du_panier_api(request, magasin_id):
-    produit_id = str(request.data.get('produit_id'))
-    quantite = int(request.data.get('quantite', 1))
-    panier_key = get_panier_key(magasin_id)
-    panier = request.session.get(panier_key, {})
-
-    if produit_id in panier:
-        if panier[produit_id] > quantite:
-            panier[produit_id] -= quantite
-        else:
-            del panier[produit_id]
-        request.session[panier_key] = panier
-        request.session.modified = True
-        return Response({"message": f"{quantite} unité(s) retirée(s) du produit {produit_id}."})
-    else:
-        return Response({"error": "Produit non présent dans le panier."}, status=status.HTTP_400_BAD_REQUEST)
-
-@csrf_exempt
-@api_view(['POST'])
-def finaliser_vente_api(request, magasin_id):
-    panier_key = get_panier_key(magasin_id)
-    panier = request.session.get(panier_key, {})
-
-    if not panier:
-        return Response({"error": "Le panier est vide."}, status=status.HTTP_400_BAD_REQUEST)
-
+@permission_classes([IsAuthenticated])
+def finaliser_vente(request, magasin_id):
+    logger.info("finaliser_vente_start", user=request.user.username, magasin_id=magasin_id)
+    panier = stock_service.get_panier(magasin_id)
     try:
         total = vente_service.creer_vente(panier, magasin_id)
     except Exception as e:
+        logger.error("finaliser_vente_error", magasin_id=magasin_id, error=str(e))
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    stock_service.clear_panier(magasin_id)
+    logger.info("finaliser_vente_end", magasin_id=magasin_id, total=total)
+    return Response({"total": total})
 
-    # Vider le panier
-    request.session[panier_key] = {}
-    request.session.modified = True
 
-    return Response({
-        "message": "Vente enregistrée avec succès.",
-        "total": total
-    }, status=status.HTTP_201_CREATED)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def annuler_vente(request, magasin_id, vente_id):
+    logger.info("annuler_vente_start", user=request.user.username, magasin_id=magasin_id, vente_id=vente_id)
+    try:
+        vente_service.annuler_vente(magasin_id, vente_id)
+    except Exception as e:
+        logger.error("annuler_vente_error", error=str(e))
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    logger.info("annuler_vente_end", magasin_id=magasin_id, vente_id=vente_id)
+    return Response({"message": "Vente annulée"})
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def sales_report(request):
+    logger.info("ventes_par_magasin_start", user=request.user.username)
+    data = []
+    ventes = vente_service.get_ventes_par_magasin()
+    for v in ventes:
+        data.append({
+            "magasin": v['magasin__nom'],
+            "total_ventes": float(v['total_ventes'])
+        })
+    logger.info("ventes_par_magasin_end", count=len(data))
+    return Response({"ventes_par_magasin": data})
+
 
 @csrf_exempt
 @api_view(['GET'])
-def ventes_par_magasin_api(request, magasin_id):
-    ventes = Vente.objects.filter(magasin_id=magasin_id).order_by('-date_heure')
-    data = []
+def maison_mere_tableau_de_bord(request, magasin_id):
+    logger = structlog.get_logger(__name__)
 
-    for vente in ventes:
-        vente_data = {
-            "id": vente.id,
-            "date": vente.date_heure.strftime("%Y-%m-%d %H:%M:%S"),
-            "total": float(vente.total),
-            "produits": [
-                {
-                    "nom": vp.produit.nom,
-                    "quantite": vp.quantite
-                } for vp in vente.produits.all()
-            ]
-        }
-        data.append(vente_data)
+    # 1. Chargement des données
+    magasin = magasin_service.get_magasin_by_id(magasin_id)
+    centre = magasin_service.get_centre_logistique()
+    raw_stats = vente_service.get_ventes_pour_maison_mere(maison_id=magasin_id)
 
+    # 2. Logging des métriques brutes
+    logger.info(
+        "tableau_de_bord_start",
+        user=request.user.username if request.user.is_authenticated else "anonymous",
+        magasin_id=magasin_id
+    )
+    # On suppose que raw_stats est une liste de dicts avec clés
+    # 'ventes_par_magasin', 'rupture_stock', 'surstock', 'ventes_hebdo', et 'magasin'
+    # (ce dernier étant une instance Magasin)
+    for stat in raw_stats:
+        logger.info(
+            "maison_mere_stat",
+            magasin=stat['magasin'].id,
+            ventes_par_magasin=stat.get('ventes_par_magasin', 0),
+            rupture_stock=stat.get('rupture_stock', 0),
+            surstock=stat.get('surstock', 0),
+            ventes_hebdo=stat.get('ventes_hebdo', 0),
+        )
+
+    # 3. Sérialisation en types primitifs
+    ventes = []
+    for stat in raw_stats:
+        ventes.append({
+            'magasin_id': stat['magasin'].id,
+            'magasin_nom': stat['magasin'].nom,
+            'ventes_par_magasin': stat.get('ventes_par_magasin', 0),
+            'rupture_stock': stat.get('rupture_stock', 0),
+            'surstock': stat.get('surstock', 0),
+            'ventes_hebdo': stat.get('ventes_hebdo', 0),
+        })
+
+    # 4. Calcul du total et logging final
+    total_ventes = sum(item['ventes_par_magasin'] for item in ventes)
+    logger.info(
+        "tableau_de_bord_end",
+        ventes_par_magasin_total=total_ventes,
+        level="info"
+    )
+
+    # 5. Renvoi de la réponse JSON
+    return Response(
+        {"ventes": ventes, "total": total_ventes},
+        status=status.HTTP_200_OK
+    )
+
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def donnees_approvisionnement(request, maison_mere_id):
+    logger.info("donnees_approvisionnement_start", user=request.user.username, maison_mere_id=maison_mere_id)
+    try:
+        Mag = Magasin.objects.get(id=maison_mere_id)
+    except Magasin.DoesNotExist:
+        logger.error("donnees_approvisionnement_not_found", maison_mere_id=maison_mere_id)
+        return Response({"error": "Maison mère introuvable."}, status=status.HTTP_404_NOT_FOUND)
+    magasins = magasin_service.get_all_magasins()
+    produits = produit_service.get_all_produits()
+    stocks = stock_service.get_stock_dict_par_magasin(maison_mere_id)
+    data = {
+        "magasins": MagasinSerializer(magasins, many=True).data,
+        "produits": ProduitSerializer(produits, many=True).data,
+        "stocks": stocks
+    }
+    logger.info("donnees_approvisionnement_end", magasins=len(magasins), produits=len(produits))
     return Response(data)
 
-@csrf_exempt
-@api_view(['DELETE'])
-def annuler_vente_api(request, magasin_id, vente_id):
-    try:
-        vente_service.annuler_vente(magasin_id=magasin_id, vente_id=vente_id)
-        return Response({'message': 'Vente annulée avec succès.'}, status=status.HTTP_200_OK)
-    except Vente.DoesNotExist:
-        return Response({'error': 'Vente non trouvée.'}, status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-def rapport_ventes_api(request, magasin_id):
-    # Vérifie que le magasin est bien la maison mère
-    try:
-        magasin = Magasin.objects.get(id=magasin_id, type='admin')
-    except Magasin.DoesNotExist:
-        return JsonResponse({"error": "Magasin introuvable ou non autorisé."}, status=404)
-
-    # 1. Total des ventes par magasin
-    ventes_par_magasin_qs = (
-        VenteProduit.objects
-        .values('vente__magasin__nom')
-        .annotate(
-            total_ventes=Sum(
-                ExpressionWrapper(
-                    F('quantite') * F('produit__prix'),
-                    output_field=FloatField()
-                )
-            )
-        )
-        .order_by('-total_ventes')
-    )
-    ventes_par_magasin = [
-        {"magasin": v["vente__magasin__nom"], "total_ventes": v["total_ventes"] or 0}
-        for v in ventes_par_magasin_qs
-    ]
-
-    # 2. Produits les plus vendus (toutes ventes confondues)
-    produits_plus_vendus_qs = (
-        VenteProduit.objects
-        .values('produit__nom')
-        .annotate(total_vendus=Sum('quantite'))
-        .order_by('-total_vendus')[:10]
-    )
-    produits_plus_vendus = [
-        {"nom": p["produit__nom"], "quantite": p["total_vendus"]}
-        for p in produits_plus_vendus_qs
-    ]
-
-    # 3. Stock total par magasin
-    stocks_qs = (
-        Stock.objects
-        .values('magasin__nom')
-        .annotate(stock_total=Sum('quantite'))
-    )
-    stocks_restant = [
-        {"magasin": s["magasin__nom"], "stock": s["stock_total"]}
-        for s in stocks_qs
-    ]
-
-    return JsonResponse({
-        "ventes_par_magasin": ventes_par_magasin,
-        "produits_plus_vendus": produits_plus_vendus,
-        "stocks_restant": stocks_restant
-    })
-
-@csrf_exempt
-def tableau_de_bord_api(request, magasin_id):
-    # 1. Chiffre d’affaires par magasin
-    ventes_par_magasin = list(
-        VenteProduit.objects
-        .values('vente__magasin__nom')
-        .annotate(total_ventes=Sum(
-            ExpressionWrapper(F('quantite') * F('produit__prix'), output_field=FloatField())
-        ))
-        .order_by('-total_ventes')
-    )
-
-    # 2. Produits en rupture de stock (quantité <= 0)
-    rupture_stock = list(
-        Stock.objects
-        .filter(quantite__lte=0)
-        .values('produit__nom', 'magasin__nom', 'quantite')
-    )
-
-    # 3. Produits en surstock (quantité > 100)
-    surstock = list(
-        Stock.objects
-        .filter(quantite__gt=100)
-        .values('produit__nom', 'magasin__nom', 'quantite')
-    )
-
-    # 4. Tendances hebdomadaires (ventes regroupées par jour)
-    ventes_hebdo = list(
-        VenteProduit.objects
-        .values('vente__date_heure__date')
-        .annotate(total=Sum(
-            ExpressionWrapper(F('quantite') * F('produit__prix'), output_field=FloatField())
-        ))
-        .order_by('vente__date_heure__date')
-    )
-
-    return JsonResponse({
-        "ventes_par_magasin": ventes_par_magasin,
-        "rupture_stock": rupture_stock,
-        "surstock": surstock,
-        "ventes_hebdo": ventes_hebdo
-    })
-
-@csrf_exempt
-@api_view(['GET'])
-def donnees_approvisionnement(request, maison_mere_id):
-    try:
-        maison_mere = Magasin.objects.get(id=maison_mere_id)
-    except Magasin.DoesNotExist:
-        return Response({"error": "Maison mère introuvable."}, status=status.HTTP_404_NOT_FOUND)
-
-    # Ici tu choisis le bon centre logistique associé à cette maison mère
-    centre_logistique = Magasin.objects.filter(type='centre_logistique').first()
-    if not centre_logistique:
-        return Response({"error": "Centre logistique non trouvé."}, status=status.HTTP_404_NOT_FOUND)
-
-    magasins = Magasin.objects.exclude(id=centre_logistique.id).values('id', 'nom')
-    produits = stock_service.get_produits_disponibles(centre_logistique.id)
-    stock_dict = stock_service.get_stock_dict_for_magasin(centre_logistique.id)
-
-    print("Produits disponibles:", produits)
-    print("Stock dict:", stock_dict)
-
-    data = {
-        "centre_id": centre_logistique.id,
-        "magasins": list(magasins),
-        "produits": [{"id": p.id, "nom": p.nom} for p in produits],
-        "stocks": {pid: stock.quantite for pid, stock in stock_dict.items()}
-    }
-    return Response(data, status=status.HTTP_200_OK)
-
-@csrf_exempt
 @api_view(['POST'])
-def approvisionner(request, centre_id):
-    destination_id = request.POST.get('destination_magasin_id')
-
-    if not destination_id:
-        return Response({"error": "Magasin de destination requis."}, status=status.HTTP_400_BAD_REQUEST)
-
-    try:
-        Magasin.objects.get(id=destination_id)
-    except Magasin.DoesNotExist:
-        return Response({"error": "Magasin de destination invalide."}, status=status.HTTP_404_NOT_FOUND)
-
-    messages = []
-    erreurs = []
-    for key, value in request.POST.items():
-        if key.startswith("quantite_"):
-            try:
-                produit_id = int(key.replace("quantite_", ""))
-                quantite = int(value)
-                if quantite > 0:
-                    success, msg = stock_service.transferer_stock(
-                        produit_id=produit_id,
-                        quantite=quantite,
-                        source_magasin_id=centre_id,
-                        destination_magasin_id=int(destination_id)
-                    )
-                    messages.append(msg)
-            except ValueError as ve:
-                erreurs.append(str(ve))
-            except Exception as e:
-                erreurs.append(f"Erreur pour le produit {produit_id} : {str(e)}")
-
-    if erreurs:
-        return Response({"error": erreurs}, status=status.HTTP_400_BAD_REQUEST)
-
-    return Response({"message": "Approvisionnement terminé avec succès.", "details": messages}, status=status.HTTP_200_OK)
+@permission_classes([IsAuthenticated])
+@csrf_exempt
+def approvisionner(request, maison_mere_id):
+    logger.info("approvisionnement_start", user=request.user.username, maison_mere_id=maison_mere_id, data=request.data)
+    centre = magasin_service.get_centre_logistique()
+    errors, messages = [], []
+    for entry in request.data.get('produits', []):
+        try:
+            pid = entry['produit_id']
+            qty = entry['quantite']
+            dest_id = entry['destination_magasin_id']
+            _, msg = stock_service.transferer_stock(pid, qty, centre.id, dest_id)
+            messages.append(msg)
+        except Exception as e:
+            errors.append(str(e))
+    status_code = status.HTTP_200_OK if not errors else status.HTTP_400_BAD_REQUEST
+    payload = {"details": messages} if not errors else {"error": errors}
+    logger.info("approvisionnement_end", status_code=status_code, errors=errors)
+    return Response(payload, status=status_code)
