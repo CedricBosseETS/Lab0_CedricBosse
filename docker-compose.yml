@@ -1,7 +1,8 @@
 services:
-  app:
+  # Première instance de l'API Django
+  app1:
     build: .
-    container_name: caisse-app
+    container_name: caisse-app1
     environment:
       PYTHONPATH: /app/src
       DJANGO_SETTINGS_MODULE: src.caisse_django.settings
@@ -11,11 +12,47 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
     depends_on:
       - db
-    ports:
-      - "5000:5000"
     volumes:
       - .:/app:rw
+    restart: unless-stopped
+    networks:
+      - backend
 
+  # Seconde instance de l'API Django
+  app2:
+    build: .
+    container_name: caisse-app2
+    environment:
+      PYTHONPATH: /app/src
+      DJANGO_SETTINGS_MODULE: src.caisse_django.settings
+      DB_HOST: db
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      - db
+    volumes:
+      - .:/app:rw
+    restart: unless-stopped
+    networks:
+      - backend
+
+  # Load Balancer NGINX
+  nginx:
+    image: nginx:latest
+    container_name: lb
+    ports:
+      - '5000:80'
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app1
+      - app2
+    restart: unless-stopped
+    networks:
+      - backend
+
+  # Base de données
   db:
     image: mysql:8.3
     container_name: mysql-db
@@ -27,30 +64,42 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
+    networks:
+      - backend
 
+  # Prometheus pour collecter les métriques
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
-      - "9090:9090"
+      - '9090:9090'
     restart: unless-stopped
+    networks:
+      - backend
 
+  # Grafana pour visualiser les métriques
   grafana:
     image: grafana/grafana:9.5.0
     container_name: grafana
     depends_on:
       - prometheus
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: "secret"
-      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SECURITY_ADMIN_PASSWORD: 'secret'
+      GF_USERS_ALLOW_SIGN_UP: 'false'
     volumes:
       - grafana_data:/var/lib/grafana
     restart: unless-stopped
+    networks:
+      - backend
 
 volumes:
   mysql_data:
   grafana_data:
+
+networks:
+  backend:
+    driver: bridge

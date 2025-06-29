@@ -18,7 +18,7 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-...")
 
 DEBUG = True
 
-ALLOWED_HOSTS = ["10.194.32.173", "localhost", "127.0.0.1", "app"]
+ALLOWED_HOSTS = ["10.194.32.173", "localhost", "127.0.0.1", "app", "app1", "app2", "nginx"]
 
 # Application definition
 INSTALLED_APPS = [
