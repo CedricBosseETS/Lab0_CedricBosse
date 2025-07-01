@@ -174,6 +174,19 @@ LOGGING = {
     },
 }
 
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        # Si tu utilises docker-compose, le host est "redis"
+        "LOCATION": "redis://redis:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            # facultatif : gérer les exceptions
+            "IGNORE_EXCEPTIONS": True,
+        },
+    }
+}
+
 structlog.configure(
     processors=[
         structlog.processors.add_log_level,

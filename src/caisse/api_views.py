@@ -16,6 +16,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
+
+# Nouveaux imports pour le cache
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+
 from caisse.services import stock_service, magasin_service, vente_service, produit_service
 
 logger = structlog.get_logger()
@@ -80,6 +85,8 @@ class StockViewSet(viewsets.ReadOnlyModelViewSet):
             return qs.filter(magasin_id=magasin_id)
         return qs.none()
 
+    # Mise en cache de 2 minutes (120s) de la liste
+    @method_decorator(cache_page(120), name="list")
     def list(self, request, *args, **kwargs):
         logger.info("stock_list_start", user=request.user.username, params=request.query_params)
         resp = super().list(request, *args, **kwargs)
@@ -166,7 +173,7 @@ def retirer_du_panier(request, magasin_id):
         logger.error("retirer_du_panier_error", error=str(e))
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     serializer = StockSerializer(panier, many=True)
-    logger.info("retirer_du_panier_end", count=len(serializer.data))
+    logger.info("retirer_au_panier_end", count=len(serializer.data))
     return Response(serializer.data)
 
 
@@ -215,34 +222,14 @@ def sales_report(request):
 
 @csrf_exempt
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
+@cache_page(120)  # Mise en cache de 2 minutes
 def maison_mere_tableau_de_bord(request, magasin_id):
-    logger = structlog.get_logger(__name__)
+    logger.info("tableau_de_bord_start",
+                user=request.user.username if request.user.is_authenticated else "anonymous",
+                magasin_id=magasin_id)
 
-    # 1. Chargement des données
-    magasin = magasin_service.get_magasin_by_id(magasin_id)
-    centre = magasin_service.get_centre_logistique()
     raw_stats = vente_service.get_ventes_pour_maison_mere(maison_id=magasin_id)
-
-    # 2. Logging des métriques brutes
-    logger.info(
-        "tableau_de_bord_start",
-        user=request.user.username if request.user.is_authenticated else "anonymous",
-        magasin_id=magasin_id
-    )
-    # On suppose que raw_stats est une liste de dicts avec clés
-    # 'ventes_par_magasin', 'rupture_stock', 'surstock', 'ventes_hebdo', et 'magasin'
-    # (ce dernier étant une instance Magasin)
-    for stat in raw_stats:
-        logger.info(
-            "maison_mere_stat",
-            magasin=stat['magasin'].id,
-            ventes_par_magasin=stat.get('ventes_par_magasin', 0),
-            rupture_stock=stat.get('rupture_stock', 0),
-            surstock=stat.get('surstock', 0),
-            ventes_hebdo=stat.get('ventes_hebdo', 0),
-        )
-
-    # 3. Sérialisation en types primitifs
     ventes = []
     for stat in raw_stats:
         ventes.append({
@@ -254,20 +241,10 @@ def maison_mere_tableau_de_bord(request, magasin_id):
             'ventes_hebdo': stat.get('ventes_hebdo', 0),
         })
 
-    # 4. Calcul du total et logging final
     total_ventes = sum(item['ventes_par_magasin'] for item in ventes)
-    logger.info(
-        "tableau_de_bord_end",
-        ventes_par_magasin_total=total_ventes,
-        level="info"
-    )
+    logger.info("tableau_de_bord_end", ventes_par_magasin_total=total_ventes)
 
-    # 5. Renvoi de la réponse JSON
-    return Response(
-        {"ventes": ventes, "total": total_ventes},
-        status=status.HTTP_200_OK
-    )
-
+    return Response({"ventes": ventes, "total": total_ventes}, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])

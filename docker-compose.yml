@@ -1,6 +1,13 @@
 version: '3.8'
 
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: redis-cache
+    ports:
+      - "6379:6379"
+    restart: always
+    
   app:
     build: .
     # plus de container_name, on scale librement
@@ -73,6 +80,7 @@ services:
     restart: unless-stopped
     networks:
       - backend
+  
 
 volumes:
   mysql_data:
