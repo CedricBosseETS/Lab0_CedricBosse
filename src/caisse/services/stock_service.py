@@ -3,63 +3,6 @@ from django.db import transaction
 from django.db.models import Sum
 from caisse.models import Stock, Produit
 
-def _session_key(magasin_id):
-    return f"panier_{magasin_id}"
-
-def get_panier(magasin_id, session):
-    """
-    Récupère le panier (dict produit_id->quantité) depuis la session
-    et retourne une liste d'objets Stock fictifs pour la sérialisation.
-    """
-    panier = session.get(_session_key(magasin_id), {})
-    result = []
-    for pid_str, qty in panier.items():
-        try:
-            produit = Produit.objects.get(pk=int(pid_str))
-        except Produit.DoesNotExist:
-            continue
-        # On crée un objet Stock “à la volée” sans l'enregistrer en base
-        result.append(Stock(magasin_id=magasin_id, produit=produit, quantite=qty))
-    return result
-
-def ajouter_au_panier(magasin_id, produit_id, quantite, session):
-    """
-    Ajoute ou incrémente la quantité d'un produit dans le panier de session.
-    """
-    key = _session_key(magasin_id)
-    panier = session.get(key, {})
-    panier[str(produit_id)] = panier.get(str(produit_id), 0) + int(quantite)
-    session[key] = panier
-    session.modified = True
-    return get_panier(magasin_id, session)
-
-def retirer_du_panier(magasin_id, produit_id, quantite, session):
-    """
-    Décrémente ou retire un produit du panier de session.
-    """
-    key = _session_key(magasin_id)
-    panier = session.get(key, {})
-    pid = str(produit_id)
-    if pid not in panier:
-        raise ValueError("Produit non présent dans le panier.")
-    new_qty = panier[pid] - int(quantite)
-    if new_qty > 0:
-        panier[pid] = new_qty
-    else:
-        panier.pop(pid)
-    session[key] = panier
-    session.modified = True
-    return get_panier(magasin_id, session)
-
-def clear_panier(magasin_id, session):
-    """
-    Vide le panier pour ce magasin dans la session.
-    """
-    key = _session_key(magasin_id)
-    if key in session:
-        session.pop(key)
-        session.modified = True
-
 def get_stock_total_par_magasin():
     """
     Retourne la quantité totale en stock par magasin sous forme de queryset

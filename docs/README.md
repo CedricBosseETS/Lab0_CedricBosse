@@ -25,7 +25,7 @@ sudo apt install docker docker-compose
 
 ## Instructions de lancement de l'application :
 1. Pour utiliser l'application et avoir accès au site web, soit : http://localhost:5000/
-2. docker compose down (pour fermer un conteneur déjà existant au cas où et -v pour détruite les volumes si nécéssaire)
+2. docker compose down (pour fermer un conteneur déjà existant au cas où)
 3. docker compose build --no-cache
 4. docker compose up
 

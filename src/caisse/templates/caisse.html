@@ -1,186 +1,205 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Caisse</title>
     <style>
-        body { font-family: sans-serif; padding: 1rem; }
-        input[type="number"] { width: 3rem; }
-        button { margin-left: 0.5rem; }
-        select, input, button { margin: 0.25rem 0; }
+        body {
+            font-family: sans-serif;
+            padding: 1rem;
+        }
+
+        input[type="number"] {
+            width: 3rem;
+        }
+
+        button {
+            margin-left: 0.5rem;
+        }
+
+        select,
+        input,
+        button {
+            margin: 0.25rem 0;
+        }
     </style>
-<script>
-    // ---------------------------------------------------------
-    // Variables & utilitaires
-    // ---------------------------------------------------------
-    const magasinId = "{{ magasin_id }}";
-    function getCookie(name) {
-        const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
-        return v ? v.pop() : '';
-    }
+    <script>
+        const magasinId = "{{ magasin_id }}";
 
-    // ---------------------------------------------------------
-    // Tout ce qui manipule le DOM doit attendre que le DOM soit prêt
-    // ---------------------------------------------------------
-    window.addEventListener('DOMContentLoaded', () => {
-        // Chargement du nom du magasin
-        (async () => {
-            try {
-                const res = await fetch(`/api/magasins/${magasinId}/`, { credentials: 'include' });
-                if (!res.ok) throw new Error('Impossible de charger le magasin');
-                const m = await res.json();
-                document.getElementById('nom-magasin').textContent = m.nom;
-            } catch (e) {
-                console.error(e);
-            }
-        })();
+        function getCookie(name) {
+            const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+            return v ? v.pop() : '';
+        }
 
-        // Affichage du stock
         async function fetchStocks() {
             const ul = document.getElementById('liste-produits');
             ul.innerHTML = '<li>Chargement…</li>';
             try {
-                const res = await fetch(`/api/stocks/?magasin_id=${magasinId}`, { credentials: 'include' });
+                const res = await fetch(`/api/stocks/?magasin_id=${magasinId}`, {
+                    credentials: 'include'
+                });
                 if (!res.ok) throw new Error('Erreur chargement stocks');
                 const stocks = await res.json();
-                ul.innerHTML = stocks.length === 0
-                    ? '<li>Aucun produit en stock</li>'
-                    : '';
-                for (const s of stocks) {
-                    const li = document.createElement('li');
-                    li.innerHTML = `
-                        ${s.produit.nom} — Stock: ${s.quantite}
-                        <input type="number" id="stock-qte-${s.produit.id}" min="1" value="1">
-                        <button data-produit="${s.produit.id}">Ajouter</button>
-                    `;
-                    li.querySelector('button').addEventListener('click', () => {
-                        ajouterAuPanier(s.produit.id, `stock-qte-${s.produit.id}`);
-                    });
-                    ul.appendChild(li);
+                ul.innerHTML = '';
+                if (stocks.length === 0) {
+                    ul.innerHTML = '<li>Aucun produit en stock</li>';
+                } else {
+                    for (const s of stocks) {
+                        const li = document.createElement('li');
+                        li.innerHTML = `
+              ${s.produit.nom} — Stock: ${s.quantite}
+              <input type="number" id="stock-qte-${s.produit.id}" min="1" value="1">
+              <button data-produit="${s.produit.id}">Ajouter</button>
+            `;
+                        li.querySelector('button').addEventListener('click', () => {
+                            ajouterAuPanier(s.produit.id, `stock-qte-${s.produit.id}`);
+                        });
+                        ul.appendChild(li);
+                    }
                 }
             } catch (err) {
                 ul.innerHTML = `<li>Erreur : ${err.message}</li>`;
             }
         }
 
-        // Ajouter au panier
         function ajouterAuPanier(produitId, qteInputId) {
             const quantite = parseInt(document.getElementById(qteInputId).value, 10);
             fetch(`/api/panier/${magasinId}/ajouter/`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-CSRFToken': getCookie('csrftoken')
                 },
                 body: JSON.stringify({ produit_id: produitId, quantite })
             })
-            .then(res => res.ok
-                ? res.json()
-                : res.json().then(e => Promise.reject(e.error || 'Erreur')))
-            .then(() => alert('Produit ajouté au panier'))
-            .catch(err => alert('Erreur : ' + err));
+                .then(res => res.ok ? res.json() : res.json().then(e => Promise.reject(e.error || 'Erreur')))
+                .then(() => alert('Produit ajouté au panier'))
+                .catch(err => alert('Erreur : ' + err));
         }
 
-        // Recherche de produits
-        document.getElementById('recherche-form').addEventListener('submit', async e => {
-            e.preventDefault();
-            const q = document.getElementById('search').value.trim();
-            const ul = document.getElementById('resultats');
-            ul.innerHTML = '<li>Chargement…</li>';
+        async function afficherVentes() {
+            const cont = document.getElementById('ventes-container');
+            cont.innerHTML = '<p>Chargement…</p>';
             try {
-                const res = await fetch(`/api/produits/?search=${encodeURIComponent(q)}&magasin_id=${magasinId}`, {
+                const res = await fetch(`/api/magasins/${magasinId}/ventes/`, { credentials: 'include' });
+                if (!res.ok) throw new Error('Erreur');
+                const ventes = await res.json();
+                cont.innerHTML = ventes.length
+                    ? '<ul>' + ventes.map(v => {
+                        const prods = v.produits.map(p => `${p.nom}×${p.quantite}`).join(', ');
+                        return `<li>
+                Vente #${v.id} – ${v.date} – Total : ${v.total} $ – ${prods}
+                <button onclick="annulerVente(${v.id})">Annuler</button>
+              </li>`;
+                    }).join('') + '</ul>'
+                    : '<p>Aucune vente enregistrée</p>';
+            } catch (e) {
+                cont.innerHTML = `<p style="color:red;">Erreur : ${e.message}</p>`;
+            }
+        }
+
+        function annulerVente(id) {
+            if (!confirm("Annuler la vente ?")) return;
+            fetch(`/api/magasins/${magasinId}/ventes/${id}/annuler/`, {
+                method: 'DELETE',
+                credentials: 'include',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') }
+            })
+                .then(res => res.ok ? afficherVentes() : alert("Échec annulation"));
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            // Nom du magasin
+            fetch(`/api/magasins/${magasinId}/`, { credentials: 'include' })
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('nom-magasin').textContent = data.nom;
+                });
+
+            // Affichage du stock
+            document.getElementById('btn-afficher-produits').addEventListener('click', fetchStocks);
+
+            // Recherche de produits
+            const formSearch = document.getElementById("recherche-form");
+            const results = document.getElementById("resultats");
+
+            formSearch.addEventListener("submit", function (e) {
+                e.preventDefault();
+
+                const query = document.getElementById("search").value.trim();
+                const magasinId = "{{ magasin_id }}";
+
+                fetch(`/api/magasins/${magasinId}/produits_disponibles/?search=${encodeURIComponent(query)}`, {
                     credentials: 'include'
-                });
-                if (!res.ok) throw new Error('Erreur chargement');
-                const produits = await res.json();
-                ul.innerHTML = produits.length
-                    ? produits.map(p => `
-                        <li>
-                            ${p.nom} — ${p.prix} $
-                            <input type="number" id="qte-${p.id}" min="1" value="1">
-                            <button onclick="ajouterAuPanier(${p.id}, 'qte-${p.id}')">Ajouter</button>
-                        </li>`).join('')
-                    : '<li>Aucun produit trouvé.</li>';
-            } catch (err) {
-                ul.innerHTML = `<li>Erreur : ${err.message}</li>`;
-            }
-        });
+                })
+                    .then(response => {
+                        if (!response.ok) throw new Error("Erreur de chargement");
+                        return response.json();
+                    })
+                    .then(data => {
+                        results.innerHTML = "";
+                        if (data.length === 0) {
+                            results.innerHTML = "<li>Aucun produit trouvé.</li>";
+                        } else {
+                            data.forEach(produit => {
+                                results.innerHTML += `
+                            <li>
+                                ${produit.nom} — ${produit.prix} $
+                                <input type="number" id="qte-${produit.id}" min="1" value="1" style="width: 50px;">
+                                <button onclick="ajouterAuPanier(${produit.id}, 'qte-${produit.id}')">Ajouter</button>
+                            </li>
+                        `;
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        results.innerHTML = `<li>Erreur : ${error.message}</li>`;
+                    });
+            });
 
-        // Bouton Afficher les produits
-        document.getElementById('btn-afficher-produits')
-            .addEventListener('click', fetchStocks);
+            // Réapprovisionnement
+            const form = document.getElementById('reappro-form');
+            const messageDiv = document.getElementById('reappro-message');
 
-        // Réapprovisionnement
-        document.getElementById('reappro-form').addEventListener('submit', async e => {
-            e.preventDefault();
-            const payload = {
-                destination_magasin_id: magasinId,
-                produit_id: parseInt(document.getElementById('produit-select').value, 10),
-                quantite: parseInt(document.getElementById('quantite-input').value, 10)
-            };
-            try {
-                const res = await fetch(`/api/maison_mere/${magasinId}/approvisionner/`, {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken'),
-                    },
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                const msgEl = document.getElementById('reappro-message');
-                if (res.ok) {
-                    msgEl.innerHTML = `<p style="color:green;">Réapprovisionnement OK</p>`;
-                    await fetchStocks();
-                } else {
-                    msgEl.innerHTML = `<p style="color:red;">Erreur : ${data.error || 'Échec'}</p>`;
-                }
-            } catch (err) {
-                document.getElementById('reappro-message').innerHTML =
-                    `<p style="color:red;">Erreur réseau</p>`;
-            }
-        });
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
 
-        // Historique des ventes
-        document.getElementById('ventes-container').innerHTML = '';
-        document.querySelector('button[onclick="afficherVentes()"]')
-            .addEventListener('click', async () => {
-                const cont = document.getElementById('ventes-container');
-                cont.innerHTML = '<p>Chargement…</p>';
+                const produitId = document.getElementById('produit-select').value;
+                const quantite = document.getElementById('quantite-input').value;
+                const magasinId = "{{ magasin_id }}";
+
                 try {
-                    const res = await fetch(`/api/magasins/${magasinId}/ventes/`, { credentials: 'include' });
-                    if (!res.ok) throw new Error('Erreur');
-                    const ventes = await res.json();
-                    cont.innerHTML = ventes.length
-                        ? '<ul>' + ventes.map(v => {
-                            const prods = v.produits.map(p => `${p.nom}×${p.quantite}`).join(', ');
-                            return `<li>
-                                Vente #${v.id} – ${v.date} – Total : ${v.total} $ – ${prods}
-                                <button onclick="annulerVente(${v.id})">Annuler</button>
-                            </li>`;
-                        }).join('') + '</ul>'
-                        : '<p>Aucune vente enregistrée</p>';
-                } catch (e) {
-                    cont.innerHTML = `<p style="color:red;">Erreur : ${e.message}</p>`;
+                    const response = await fetch(`/api/magasins/${magasinId}/reapprovisionner/`, {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify({
+                            magasin_id: magasinId,
+                            produit_id: produitId,
+                            quantite: quantite
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        messageDiv.innerHTML = `<p style="color:red;">Erreur : ${data.error || "Échec du réapprovisionnement."}</p>`;
+                    } else {
+                        messageDiv.innerHTML = `<p style="color:green;">Réapprovisionnement effectué avec succès.</p>`;
+                        location.reload();//trouver alternative
+                    }
+                } catch (err) {
+                    messageDiv.innerHTML = `<p style="color:red;">Erreur réseau : ${err.message}</p>`;
                 }
             });
-    });
-
-    // Fonction globale pour annuler une vente (reste hors du DOMContentLoaded)
-    function annulerVente(id) {
-        if (!confirm("Annuler la vente ?")) return;
-        fetch(`/api/magasins/${magasinId}/ventes/${id}/annuler/`, {
-            method: 'DELETE',
-            credentials: 'include',
-            headers: { 'X-CSRFToken': getCookie('csrftoken') }
-        })
-        .then(res => res.ok ? window.location.reload() : alert("Échec annulation"));
-    }
-</script>
-
+        });
+    </script>
 </head>
+
 <body>
     <a href="/">🏠 Accueil</a>
     <h1>Caisse pour le magasin <span id="nom-magasin">…</span></h1>
@@ -195,7 +214,7 @@
     <h2>Produits disponibles</h2>
     <button id="btn-afficher-produits">Afficher les produits en stock</button>
     <ul id="liste-produits"></ul>
-    <button onclick="location.href='/panier/'+magasinId+'/';">Voir mon panier</button>
+    <button onclick="location.href='/panier/' + magasinId + '/';">Voir mon panier</button>
 
     <h2>Réapprovisionnement depuis le centre logistique</h2>
     <form id="reappro-form">
@@ -203,9 +222,9 @@
         <select id="produit-select" required>
             <option value="" disabled selected>Choisir un produit</option>
             {% for produit_id, stock in stock_centre.items %}
-                <option value="{{ produit_id }}">
-                    {{ stock.produit.nom }} ({{ stock.quantite }} en stock)
-                </option>
+            <option value="{{ produit_id }}">
+                {{ stock.produit.nom }} ({{ stock.quantite }} en stock)
+            </option>
             {% endfor %}
         </select>
         <label>Quantité :</label>
@@ -218,4 +237,5 @@
     <button onclick="afficherVentes()">Afficher les ventes</button>
     <div id="ventes-container"></div>
 </body>
+
 </html>

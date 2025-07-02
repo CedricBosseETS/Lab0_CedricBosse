@@ -3,6 +3,8 @@ import structlog
 from warnings import filters as warnings_filters
 from django.http import JsonResponse
 from django.db.models import Sum, F, ExpressionWrapper, FloatField
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
 from rest_framework import status, viewsets, filters
 from .models import Magasin, Produit, Stock, Vente, VenteProduit
 from .serializers import (
@@ -16,6 +18,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
+from django.db.models import Q
 
 # Nouveaux imports pour le cache
 from django.utils.decorators import method_decorator
@@ -87,7 +90,7 @@ class StockViewSet(viewsets.ReadOnlyModelViewSet):
         return qs.none()
 
     # Mise en cache de 2 minutes (120s) de la liste
-    @method_decorator(cache_page(120), name="list")
+    @method_decorator(cache_page(60), name="list")
     def list(self, request, *args, **kwargs):
         logger.info("stock_list_start", user=request.user.username, params=request.query_params)
         resp = super().list(request, *args, **kwargs)
@@ -212,18 +215,25 @@ def annuler_vente(request, magasin_id, vente_id):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def sales_report(request):
-    logger.info("ventes_par_magasin_start", user=request.user.username)
+def ventes_par_magasin_api(request, magasin_id):
+    ventes = Vente.objects.filter(magasin_id=magasin_id).order_by('-date_heure')
     data = []
-    ventes = vente_service.get_ventes_par_magasin()
-    for v in ventes:
-        data.append({
-            "magasin": v['magasin__nom'],
-            "total_ventes": float(v['total_ventes'])
-        })
-    logger.info("ventes_par_magasin_end", count=len(data))
-    return Response({"ventes_par_magasin": data})
 
+    for vente in ventes:
+        vente_data = {
+            "id": vente.id,
+            "date": vente.date_heure.strftime("%Y-%m-%d %H:%M:%S"),
+            "total": float(vente.total),
+            "produits": [
+                {
+                    "nom": vp.produit.nom,
+                    "quantite": vp.quantite
+                } for vp in vente.produits.all()
+            ]
+        }
+        data.append(vente_data)
+
+    return Response(data)
 
 @csrf_exempt
 @api_view(['GET'])
@@ -277,68 +287,105 @@ def donnees_approvisionnement(request, maison_mere_id):
 @permission_classes([IsAuthenticated])
 @csrf_exempt
 def approvisionner(request, centre_id):
-    """
-    Transfère du stock depuis le centre logistique (centre_id)
-    vers un magasin de destination, selon les champs POST quantite_<produit_id>
-    et destination_magasin_id.
-    """
-    logger.info(
-        "approvisionnement_start",
-        user=request.user.username,
-        centre_id=centre_id,
-        data=request.data,
-    )
+    destination_id = request.POST.get('destination_magasin_id')
 
-    # on lit la destination
-    destination_id = request.data.get('destination_magasin_id') or request.POST.get('destination_magasin_id')
     if not destination_id:
-        return Response(
-            {"error": "Magasin de destination requis."},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        return Response({"error": "Magasin de destination requis."}, status=status.HTTP_400_BAD_REQUEST)
 
-    # on vérifie que ce magasin existe
     try:
         Magasin.objects.get(id=destination_id)
     except Magasin.DoesNotExist:
-        return Response(
-            {"error": "Magasin de destination invalide."},
-            status=status.HTTP_404_NOT_FOUND
-        )
+        return Response({"error": "Magasin de destination invalide."}, status=status.HTTP_404_NOT_FOUND)
 
-    messages: list[str] = []
-    erreurs: list[str] = []
-
-    # on parcourt tous les champs quantite_<id>
-    # on supporte à la fois JSON (request.data) et form-encoded (request.POST)
-    source = request.data if request.data else request.POST
-    for key, value in source.items():
+    messages = []
+    erreurs = []
+    for key, value in request.POST.items():
         if key.startswith("quantite_"):
             try:
-                produit_id = int(key.split("_", 1)[1])
+                produit_id = int(key.replace("quantite_", ""))
                 quantite = int(value)
                 if quantite > 0:
                     success, msg = stock_service.transferer_stock(
                         produit_id=produit_id,
                         quantite=quantite,
                         source_magasin_id=centre_id,
-                        destination_magasin_id=int(destination_id),
+                        destination_magasin_id=int(destination_id)
                     )
                     messages.append(msg)
             except ValueError as ve:
-                erreurs.append(f"Valeur invalide pour {key}: {value}")
+                erreurs.append(str(ve))
             except Exception as e:
                 erreurs.append(f"Erreur pour le produit {produit_id} : {str(e)}")
 
-    # si on a des erreurs, on renvoie un 400 avec la liste
     if erreurs:
-        logger.error("approvisionnement_errors", erreurs=erreurs)
         return Response({"error": erreurs}, status=status.HTTP_400_BAD_REQUEST)
 
-    # tout s'est bien passé
-    logger.info("approvisionnement_success", messages=messages)
-    cache.clear()
-    return Response(
-        {"message": "Approvisionnement terminé avec succès.", "details": messages},
-        status=status.HTTP_200_OK
+    return Response({"message": "Approvisionnement terminé avec succès.", "details": messages}, status=status.HTTP_200_OK)
+
+@csrf_exempt
+@api_view(['POST'])
+def reapprovisionner_api(request, magasin_id):
+    magasin = magasin_service.get_magasin_by_id(magasin_id)
+    centre_logistique = magasin_service.get_centre_logistique()
+
+    produit_id = request.data.get('produit_id')
+    quantite = request.data.get('quantite')
+
+    # Validation basique
+    if not produit_id or not quantite:
+        return Response({"error": "Produit et quantité sont requis."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        produit = Produit.objects.get(id=produit_id)
+    except Produit.DoesNotExist:
+        return Response({"error": "Produit invalide."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        quantite = int(quantite)
+        if quantite <= 0:
+            return Response({"error": "La quantité doit être un entier positif."}, status=status.HTTP_400_BAD_REQUEST)
+    except ValueError:
+        return Response({"error": "La quantité doit être un entier."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Vérifier que le produit existe dans le stock du centre logistique avec assez de stock
+    stock_centre = stock_service.get_stock_entry(centre_logistique.id, produit_id)
+    if not stock_centre or stock_centre.quantite < quantite:
+        return Response({"error": "Stock insuffisant au centre logistique."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Transaction atomique pour le transfert de stock
+    try:
+        with transaction.atomic():
+            success, msg = stock_service.transferer_stock(
+                produit_id,
+                quantite,
+                centre_logistique.id,
+                magasin.id
+            )
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response({"success": msg}, status=status.HTTP_201_CREATED)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def rechercher_produits_disponibles(request, magasin_id):
+    """
+    Recherche de produits disponibles dans un magasin donné (nom ou ID).
+    """
+    query = request.GET.get('search', '').strip()
+
+    if not query:
+        return Response([], status=200)
+
+    produits = Produit.objects.filter(
+        Q(nom__icontains=query) | Q(id__icontains=query)
     )
+
+    produits_disponibles = []
+    for produit in produits:
+        stock = stock_service.get_stock_entry(magasin_id, produit.id)
+        if stock and stock.quantite > 0:
+            produits_disponibles.append(produit)
+
+    serializer = ProduitSerializer(produits_disponibles, many=True)
+    return Response(serializer.data)

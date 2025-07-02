@@ -23,10 +23,12 @@ from .api_views import (
     retirer_du_panier,
     finaliser_vente,
     annuler_vente,
-    sales_report,
+    ventes_par_magasin_api,
     maison_mere_tableau_de_bord,
     donnees_approvisionnement,
     approvisionner,
+    reapprovisionner_api,
+    rechercher_produits_disponibles
 )
 
 # Documentation Swagger/OpenAPI
@@ -59,13 +61,16 @@ urlpatterns = [
 
     # --- API REST ---
     path('api/', include(router.urls)),
+    path('api/magasins/<int:magasin_id>/reapprovisionner/', reapprovisionner_api, name='reapprovisionner_api'),
+    path("api/magasins/<int:magasin_id>/ventes/", ventes_par_magasin_api),
+    path('api/magasins/<int:magasin_id>/produits_disponibles/', rechercher_produits_disponibles, name='produits_disponibles'),
     path('api/stock/transferer/', transferer_stock, name='transferer_stock'),
     path('api/panier/<int:magasin_id>/', get_panier, name='get_panier'),
     path('api/panier/<int:magasin_id>/ajouter/', ajouter_au_panier, name='ajouter_au_panier'),
     path('api/panier/<int:magasin_id>/retirer/', retirer_du_panier, name='retirer_au_panier'),
     path('api/panier/<int:magasin_id>/finaliser/', finaliser_vente, name='finaliser_vente'),
     path('api/panier/<int:magasin_id>/annuler/<int:vente_id>/', annuler_vente, name='annuler_vente'),
-    path('api/rapports/ventes/', sales_report, name='sales_report'),
+    path('api/rapports/ventes/', ventes_par_magasin_api, name='ventes_par_magasin'),
     path('api/maison_mere/<int:magasin_id>/tableau_de_bord/', maison_mere_tableau_de_bord, name='tableau_de_bord'),
     path('api/maison_mere/<int:magasin_id>/donnees_approvisionnement/', donnees_approvisionnement, name='donnees_approvisionnement'),
     #path('api/maison_mere/<int:magasin_id>/approvisionner/', approvisionner, name='approvisionner'),
