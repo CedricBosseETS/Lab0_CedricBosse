@@ -83,7 +83,7 @@ class APIMagasinsTest(TestCase):
         self.assertIn(response.status_code, [200, 201])
 
     def test_ventes_par_magasin(self):
-        url = f"/api/magasins/{self.magasin.id}/ventes/"
+        url = "/api/rapports/ventes/"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 

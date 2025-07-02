@@ -68,7 +68,8 @@ urlpatterns = [
     path('api/rapports/ventes/', sales_report, name='sales_report'),
     path('api/maison_mere/<int:magasin_id>/tableau_de_bord/', maison_mere_tableau_de_bord, name='tableau_de_bord'),
     path('api/maison_mere/<int:magasin_id>/donnees_approvisionnement/', donnees_approvisionnement, name='donnees_approvisionnement'),
-    path('api/maison_mere/<int:magasin_id>/approvisionner/', approvisionner, name='approvisionner'),
+    #path('api/maison_mere/<int:magasin_id>/approvisionner/', approvisionner, name='approvisionner'),
+    path('api/maison_mere/<int:centre_id>/approvisionner/', approvisionner, name='approvisionner'),
 
     # --- Vues classiques (UI) ---
     path('', home.home_view, name='home'),

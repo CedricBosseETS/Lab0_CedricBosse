@@ -20,6 +20,7 @@ from django.db import transaction
 # Nouveaux imports pour le cache
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+from django.core.cache import cache
 
 from caisse.services import stock_service, magasin_service, vente_service, produit_service
 
@@ -139,70 +140,74 @@ def transferer_stock(request):
 @permission_classes([IsAuthenticated])
 def get_panier(request, magasin_id):
     logger.info("get_panier_start", user=request.user.username, magasin_id=magasin_id)
-    panier = stock_service.get_panier(magasin_id)
-    serializer = StockSerializer(panier, many=True)
-    logger.info("get_panier_end", count=len(serializer.data))
-    return Response(serializer.data)
+    panier = stock_service.get_panier(magasin_id, request.session)
+    data = StockSerializer(panier, many=True).data
+    logger.info("get_panier_end", count=len(data))
+    return Response(data)
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def ajouter_au_panier(request, magasin_id):
-    logger.info("ajouter_au_panier_start", user=request.user.username, magasin_id=magasin_id, data=request.data)
+    logger.info("ajouter_au_panier_start", user=request.user.username,
+                magasin_id=magasin_id, data=request.data)
     produit_id = request.data.get('produit_id')
     quantite = request.data.get('quantite')
     try:
-        panier = stock_service.ajouter_au_panier(magasin_id, produit_id, quantite)
+        panier = stock_service.ajouter_au_panier(magasin_id, produit_id, quantite, request.session)
     except Exception as e:
         logger.error("ajouter_au_panier_error", error=str(e))
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    serializer = StockSerializer(panier, many=True)
-    logger.info("ajouter_au_panier_end", count=len(serializer.data))
-    return Response(serializer.data)
+    data = StockSerializer(panier, many=True).data
+    logger.info("ajouter_au_panier_end", count=len(data))
+    return Response(data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def retirer_du_panier(request, magasin_id):
-    logger.info("retirer_du_panier_start", user=request.user.username, magasin_id=magasin_id, data=request.data)
+    logger.info("retirer_du_panier_start", user=request.user.username,
+                magasin_id=magasin_id, data=request.data)
     produit_id = request.data.get('produit_id')
     quantite = request.data.get('quantite')
     try:
-        panier = stock_service.retirer_du_panier(magasin_id, produit_id, quantite)
+        panier = stock_service.retirer_du_panier(magasin_id, produit_id, quantite, request.session)
     except Exception as e:
         logger.error("retirer_du_panier_error", error=str(e))
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    serializer = StockSerializer(panier, many=True)
-    logger.info("retirer_au_panier_end", count=len(serializer.data))
-    return Response(serializer.data)
+    data = StockSerializer(panier, many=True).data
+    logger.info("retirer_du_panier_end", count=len(data))
+    return Response(data, status=status.HTTP_200_OK)
+
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def finaliser_vente(request, magasin_id):
     logger.info("finaliser_vente_start", user=request.user.username, magasin_id=magasin_id)
-    panier = stock_service.get_panier(magasin_id)
+    panier = stock_service.get_panier(magasin_id, request.session)
     try:
         total = vente_service.creer_vente(panier, magasin_id)
     except Exception as e:
-        logger.error("finaliser_vente_error", magasin_id=magasin_id, error=str(e))
+        logger.error("finaliser_vente_error", error=str(e))
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    stock_service.clear_panier(magasin_id)
+    stock_service.clear_panier(magasin_id, request.session)
     logger.info("finaliser_vente_end", magasin_id=magasin_id, total=total)
-    return Response({"total": total})
+    return Response({"total": total}, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def annuler_vente(request, magasin_id, vente_id):
-    logger.info("annuler_vente_start", user=request.user.username, magasin_id=magasin_id, vente_id=vente_id)
+    logger.info("annuler_vente_start", user=request.user.username,
+                magasin_id=magasin_id, vente_id=vente_id)
     try:
         vente_service.annuler_vente(magasin_id, vente_id)
     except Exception as e:
         logger.error("annuler_vente_error", error=str(e))
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     logger.info("annuler_vente_end", magasin_id=magasin_id, vente_id=vente_id)
-    return Response({"message": "Vente annulée"})
+    return Response({"message": "Vente annulée"}, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
@@ -271,20 +276,69 @@ def donnees_approvisionnement(request, maison_mere_id):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 @csrf_exempt
-def approvisionner(request, maison_mere_id):
-    logger.info("approvisionnement_start", user=request.user.username, maison_mere_id=maison_mere_id, data=request.data)
-    centre = magasin_service.get_centre_logistique()
-    errors, messages = [], []
-    for entry in request.data.get('produits', []):
-        try:
-            pid = entry['produit_id']
-            qty = entry['quantite']
-            dest_id = entry['destination_magasin_id']
-            _, msg = stock_service.transferer_stock(pid, qty, centre.id, dest_id)
-            messages.append(msg)
-        except Exception as e:
-            errors.append(str(e))
-    status_code = status.HTTP_200_OK if not errors else status.HTTP_400_BAD_REQUEST
-    payload = {"details": messages} if not errors else {"error": errors}
-    logger.info("approvisionnement_end", status_code=status_code, errors=errors)
-    return Response(payload, status=status_code)
+def approvisionner(request, centre_id):
+    """
+    Transfère du stock depuis le centre logistique (centre_id)
+    vers un magasin de destination, selon les champs POST quantite_<produit_id>
+    et destination_magasin_id.
+    """
+    logger.info(
+        "approvisionnement_start",
+        user=request.user.username,
+        centre_id=centre_id,
+        data=request.data,
+    )
+
+    # on lit la destination
+    destination_id = request.data.get('destination_magasin_id') or request.POST.get('destination_magasin_id')
+    if not destination_id:
+        return Response(
+            {"error": "Magasin de destination requis."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # on vérifie que ce magasin existe
+    try:
+        Magasin.objects.get(id=destination_id)
+    except Magasin.DoesNotExist:
+        return Response(
+            {"error": "Magasin de destination invalide."},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    messages: list[str] = []
+    erreurs: list[str] = []
+
+    # on parcourt tous les champs quantite_<id>
+    # on supporte à la fois JSON (request.data) et form-encoded (request.POST)
+    source = request.data if request.data else request.POST
+    for key, value in source.items():
+        if key.startswith("quantite_"):
+            try:
+                produit_id = int(key.split("_", 1)[1])
+                quantite = int(value)
+                if quantite > 0:
+                    success, msg = stock_service.transferer_stock(
+                        produit_id=produit_id,
+                        quantite=quantite,
+                        source_magasin_id=centre_id,
+                        destination_magasin_id=int(destination_id),
+                    )
+                    messages.append(msg)
+            except ValueError as ve:
+                erreurs.append(f"Valeur invalide pour {key}: {value}")
+            except Exception as e:
+                erreurs.append(f"Erreur pour le produit {produit_id} : {str(e)}")
+
+    # si on a des erreurs, on renvoie un 400 avec la liste
+    if erreurs:
+        logger.error("approvisionnement_errors", erreurs=erreurs)
+        return Response({"error": erreurs}, status=status.HTTP_400_BAD_REQUEST)
+
+    # tout s'est bien passé
+    logger.info("approvisionnement_success", messages=messages)
+    cache.clear()
+    return Response(
+        {"message": "Approvisionnement terminé avec succès.", "details": messages},
+        status=status.HTTP_200_OK
+    )
