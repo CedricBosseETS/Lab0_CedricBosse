@@ -25,7 +25,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 
-from caisse.services import stock_service, magasin_service, vente_service, produit_service
+from caisse.services import stock_service, magasin_service, vente_service, produit_service, panier_service
 
 logger = structlog.get_logger()
 
@@ -137,52 +137,6 @@ def transferer_stock(request):
     payload = {"details": messages} if not errors else {"error": errors}
     logger.info("transferer_stock_end", status_code=status_code, errors=errors)
     return Response(payload, status=status_code)
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def get_panier(request, magasin_id):
-    logger.info("get_panier_start", user=request.user.username, magasin_id=magasin_id)
-    panier = stock_service.get_panier(magasin_id, request.session)
-    data = StockSerializer(panier, many=True).data
-    logger.info("get_panier_end", count=len(data))
-    return Response(data)
-
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def ajouter_au_panier(request, magasin_id):
-    logger.info("ajouter_au_panier_start", user=request.user.username,
-                magasin_id=magasin_id, data=request.data)
-    produit_id = request.data.get('produit_id')
-    quantite = request.data.get('quantite')
-    try:
-        panier = stock_service.ajouter_au_panier(magasin_id, produit_id, quantite, request.session)
-    except Exception as e:
-        logger.error("ajouter_au_panier_error", error=str(e))
-        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    data = StockSerializer(panier, many=True).data
-    logger.info("ajouter_au_panier_end", count=len(data))
-    return Response(data, status=status.HTTP_200_OK)
-
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def retirer_du_panier(request, magasin_id):
-    logger.info("retirer_du_panier_start", user=request.user.username,
-                magasin_id=magasin_id, data=request.data)
-    produit_id = request.data.get('produit_id')
-    quantite = request.data.get('quantite')
-    try:
-        panier = stock_service.retirer_du_panier(magasin_id, produit_id, quantite, request.session)
-    except Exception as e:
-        logger.error("retirer_du_panier_error", error=str(e))
-        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    data = StockSerializer(panier, many=True).data
-    logger.info("retirer_du_panier_end", count=len(data))
-    return Response(data, status=status.HTTP_200_OK)
-
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -389,3 +343,75 @@ def rechercher_produits_disponibles(request, magasin_id):
 
     serializer = ProduitSerializer(produits_disponibles, many=True)
     return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def afficher_panier(request, magasin_id):
+    panier = request.session.get("panier", {})
+    magasin_id_str = str(magasin_id)
+
+    logger.info("Session panier: %s", panier)
+
+    # Vérifie que le magasin a un panier
+    magasin_panier = panier.get(magasin_id_str, {})
+    if not isinstance(magasin_panier, dict):
+        return Response([])
+
+    produit_ids = list(map(int, magasin_panier.keys()))
+    produits = Produit.objects.filter(id__in=produit_ids)
+
+    resultat = []
+    for produit in produits:
+        resultat.append({
+            "produit_id": produit.id,
+            "nom": produit.nom,
+            "prix": float(produit.prix),
+            "quantite": magasin_panier[str(produit.id)]
+        })
+
+    return Response(resultat)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def ajouter_au_panier(request, magasin_id):
+    try:
+        data = json.loads(request.body)
+        produit_id = data.get("produit_id")
+        quantite = data.get("quantite")
+
+        if not produit_id or not quantite:
+            return Response({"error": "Champs requis manquants."}, status=400)
+
+        panier_service.ajouter_au_panier(request.session, magasin_id, produit_id=produit_id, quantite=int(quantite))
+
+        return Response({"message": "Produit ajouté au panier."}, status=200)
+
+    except json.JSONDecodeError:
+        return Response({"error": "Format JSON invalide."}, status=400)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def retirer_du_panier(request, magasin_id):
+    try:
+        logger.info("Corps brut : %s", request.body)
+        logger.info("Content-Type : %s", request.content_type)
+
+        data = request.data
+        produit_id = data.get("produit_id")
+        if produit_id is None:
+            return Response({"error": "produit_id manquant"}, status=400)
+
+        logger.info("Session panier", panier=request.session.get("panier", {}))
+        panier_service.retirer_du_panier(request.session, magasin_id, produit_id)
+        return Response({"message": "Produit retiré du panier"})
+    except Exception as e:
+        logger.exception("Erreur lors du retrait du panier")
+        return Response({"error": str(e)}, status=500)
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def vider_panier(request, magasin_id):
+    panier_service.vider_panier(request.session, magasin_id)
+    return Response({"message": "Panier vidé."})

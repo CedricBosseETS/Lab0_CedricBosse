@@ -65,17 +65,60 @@
 
         function ajouterAuPanier(produitId, qteInputId) {
             const quantite = parseInt(document.getElementById(qteInputId).value, 10);
-            fetch(`/api/panier/${magasinId}/ajouter/`, {
+            fetch(`/api/magasins/${magasinId}/panier/ajouter/`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
+                    'Content-Type': 'application/json',
                     'X-CSRFToken': getCookie('csrftoken')
                 },
                 body: JSON.stringify({ produit_id: produitId, quantite })
             })
                 .then(res => res.ok ? res.json() : res.json().then(e => Promise.reject(e.error || 'Erreur')))
-                .then(() => alert('Produit ajouté au panier'))
+                .then(() => {
+                    alert('Produit ajouté au panier');
+                    afficherPanier();
+                })
                 .catch(err => alert('Erreur : ' + err));
+        }
+
+        async function afficherPanier() {
+            const cont = document.getElementById('panier-container');
+            cont.innerHTML = '<p>Chargement…</p>';
+            try {
+                const res = await fetch(`/api/magasins/${magasinId}/panier/`, {
+                    credentials: 'include'
+                });
+                const data = await res.json();
+                if (!data.length) {
+                    cont.innerHTML = '<p>Panier vide.</p>';
+                } else {
+                    cont.innerHTML = '<ul>' + data.map(p => {
+                        return `
+                            <li>
+                                ${p.nom} × ${p.quantite} — Total: ${p.prix * p.quantite} $
+                                <button onclick="retirerDuPanier(${p.produit_id})">Retirer</button>
+                            </li>
+                        `;
+                    }).join('') + '</ul>';
+                }
+            } catch (e) {
+                cont.innerHTML = `<p style="color:red;">Erreur : ${e.message}</p>`;
+            }
+        }
+
+        function retirerDuPanier(produitId) {
+            console.log("Produit à retirer :", produitId);
+
+            fetch(`/api/magasins/${magasinId}/panier/retirer/`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ produit_id: produitId })
+            }).then(() => afficherPanier());
         }
 
         async function afficherVentes() {
@@ -110,26 +153,20 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            // Nom du magasin
             fetch(`/api/magasins/${magasinId}/`, { credentials: 'include' })
                 .then(res => res.json())
                 .then(data => {
                     document.getElementById('nom-magasin').textContent = data.nom;
                 });
 
-            // Affichage du stock
             document.getElementById('btn-afficher-produits').addEventListener('click', fetchStocks);
 
-            // Recherche de produits
             const formSearch = document.getElementById("recherche-form");
             const results = document.getElementById("resultats");
 
             formSearch.addEventListener("submit", function (e) {
                 e.preventDefault();
-
                 const query = document.getElementById("search").value.trim();
-                const magasinId = "{{ magasin_id }}";
-
                 fetch(`/api/magasins/${magasinId}/produits_disponibles/?search=${encodeURIComponent(query)}`, {
                     credentials: 'include'
                 })
@@ -158,7 +195,6 @@
                     });
             });
 
-            // Réapprovisionnement
             const form = document.getElementById('reappro-form');
             const messageDiv = document.getElementById('reappro-message');
 
@@ -167,7 +203,6 @@
 
                 const produitId = document.getElementById('produit-select').value;
                 const quantite = document.getElementById('quantite-input').value;
-                const magasinId = "{{ magasin_id }}";
 
                 try {
                     const response = await fetch(`/api/magasins/${magasinId}/reapprovisionner/`, {
@@ -190,12 +225,15 @@
                         messageDiv.innerHTML = `<p style="color:red;">Erreur : ${data.error || "Échec du réapprovisionnement."}</p>`;
                     } else {
                         messageDiv.innerHTML = `<p style="color:green;">Réapprovisionnement effectué avec succès.</p>`;
-                        location.reload();//trouver alternative
+                        location.reload(); // TODO: alternative si nécessaire
                     }
                 } catch (err) {
                     messageDiv.innerHTML = `<p style="color:red;">Erreur réseau : ${err.message}</p>`;
                 }
             });
+
+            // Chargement initial du panier
+            afficherPanier();
         });
     </script>
 </head>
@@ -215,6 +253,10 @@
     <button id="btn-afficher-produits">Afficher les produits en stock</button>
     <ul id="liste-produits"></ul>
     <button onclick="location.href='/panier/' + magasinId + '/';">Voir mon panier</button>
+
+    <h2>Mon Panier</h2>
+    <div id="panier-container"></div>
+    <button onclick="afficherPanier()">Rafraîchir le panier</button>
 
     <h2>Réapprovisionnement depuis le centre logistique</h2>
     <form id="reappro-form">

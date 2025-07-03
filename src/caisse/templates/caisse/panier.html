@@ -13,80 +13,69 @@
 <button onclick="finaliserVente()">Finaliser la vente</button>
 
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-    fetch(`/api/panier/{{ magasin_id }}/`, {
-        credentials: 'include'
-    })
-    .then(response => response.json())
-    .then(data => {
-        const liste = document.getElementById("liste-panier");
-        liste.innerHTML = "";
-        data.panier.forEach(produit => {
-            const li = document.createElement("li");
-            li.innerHTML = `
-                ${produit.nom} - ${produit.quantite} x ${produit.prix} $ = ${produit.quantite * produit.prix} $<br>
-                <label>Quantité à retirer :
-                    <input type="number" min="1" max="${produit.quantite}" value="1" id="qty-${produit.id}" style="width: 50px;">
-                </label>
-                <button onclick="retirerDuPanier(${produit.id})">Retirer</button>
-            `;
-            liste.appendChild(li);
+    const magasinId = "{{ magasin_id }}";
+
+    document.addEventListener("DOMContentLoaded", () => {
+        fetch(`/api/magasins/${magasinId}/panier/`, {
+            credentials: 'include'
+        })
+        .then(response => response.json())
+        .then(data => {
+            const liste = document.getElementById("liste-panier");
+            liste.innerHTML = "";
+
+            if (!data.length) {
+                liste.innerHTML = "<li>Le panier est vide.</li>";
+                return;
+            }
+
+            data.forEach(produit => {
+                const li = document.createElement("li");
+                li.innerHTML = `
+                    ${produit.nom} – ${produit.quantite} × ${produit.prix} $ = ${(produit.quantite * produit.prix).toFixed(2)} $
+                    <button onclick="retirerDuPanier(${produit.produit_id})">Retirer</button>
+                `;
+                liste.appendChild(li);
+            });
         });
     });
-});
 
-function retirerDuPanier(produitId) {
-    const quantite = parseInt(document.getElementById(`qty-${produitId}`).value);
-    console.log("Retirer produit", produitId, "quantité", quantite);
-    fetch(`/api/panier/{{ magasin_id }}/retirer/`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": getCookie("csrftoken")
-        },
-        credentials: 'include',
-        body: JSON.stringify({ produit_id: produitId, quantite: quantite })
-    }).then(response => {
-        if (!response.ok) {
-            console.error("Erreur API:", response.status);
-        }
-        return response.json();
-    }).then(data => {
-        console.log("Réponse API:", data);
-        location.reload();
-    });
-}
-
-function finaliserVente() {
-    fetch(`/api/panier/{{ magasin_id }}/finaliser/`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": getCookie("csrftoken")
-        },
-        credentials: 'include'
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.message);
-        window.location.href = "/";
-    });
-}
-
-// CSRF token
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        for (let cookie of document.cookie.split(';')) {
-            const c = cookie.trim();
-            if (c.substring(0, name.length + 1) === name + '=') {
-                cookieValue = decodeURIComponent(c.substring(name.length + 1));
-                break;
-            }
-        }
+    function retirerDuPanier(produitId) {
+        fetch(`/api/magasins/${magasinId}/panier/retirer/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken")
+            },
+            credentials: 'include',
+            body: JSON.stringify({ produit_id: produitId })
+        })
+        .then(res => res.json())
+        .then(() => location.reload())
+        .catch(err => console.error("Erreur :", err));
     }
-    return cookieValue;
-}
+
+    function finaliserVente() {
+        fetch(`/api/magasins/${magasinId}/panier/finaliser/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken")
+            },
+            credentials: 'include'
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message || "Vente finalisée !");
+            window.location.href = "/";
+        })
+        .catch(err => alert("Erreur lors de la finalisation : " + err));
+    }
+
+    function getCookie(name) {
+        const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+        return v ? v.pop() : '';
+    }
 </script>
 </body>
 </html>

@@ -18,9 +18,10 @@ from .api_views import (
     StockViewSet,
     VenteViewSet,
     transferer_stock,
-    get_panier,
+    afficher_panier,
     ajouter_au_panier,
     retirer_du_panier,
+    vider_panier,
     finaliser_vente,
     annuler_vente,
     ventes_par_magasin_api,
@@ -28,7 +29,7 @@ from .api_views import (
     donnees_approvisionnement,
     approvisionner,
     reapprovisionner_api,
-    rechercher_produits_disponibles
+    rechercher_produits_disponibles   
 )
 
 # Documentation Swagger/OpenAPI
@@ -65,9 +66,10 @@ urlpatterns = [
     path("api/magasins/<int:magasin_id>/ventes/", ventes_par_magasin_api),
     path('api/magasins/<int:magasin_id>/produits_disponibles/', rechercher_produits_disponibles, name='produits_disponibles'),
     path('api/stock/transferer/', transferer_stock, name='transferer_stock'),
-    path('api/panier/<int:magasin_id>/', get_panier, name='get_panier'),
-    path('api/panier/<int:magasin_id>/ajouter/', ajouter_au_panier, name='ajouter_au_panier'),
-    path('api/panier/<int:magasin_id>/retirer/', retirer_du_panier, name='retirer_au_panier'),
+    path("api/magasins/<int:magasin_id>/panier/", afficher_panier),
+    path("api/magasins/<int:magasin_id>/panier/ajouter/", ajouter_au_panier),
+    path("api/magasins/<int:magasin_id>/panier/retirer/", retirer_du_panier),
+    path("api/magasins/<int:magasin_id>/panier/vider/", vider_panier),
     path('api/panier/<int:magasin_id>/finaliser/', finaliser_vente, name='finaliser_vente'),
     path('api/panier/<int:magasin_id>/annuler/<int:vente_id>/', annuler_vente, name='annuler_vente'),
     path('api/rapports/ventes/', ventes_par_magasin_api, name='ventes_par_magasin'),
