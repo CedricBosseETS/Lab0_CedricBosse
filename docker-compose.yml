@@ -1,7 +1,16 @@
+version: '3.8'
+
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: redis-cache
+    ports:
+      - "6379:6379"
+    restart: always
+    
   app:
     build: .
-    container_name: caisse-app
+    # plus de container_name, on scale librement
     environment:
       PYTHONPATH: /app/src
       DJANGO_SETTINGS_MODULE: src.caisse_django.settings
@@ -9,17 +18,31 @@ services:
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
+      ALLOWED_HOSTS: 'app,nginx,localhost,127.0.0.1'
+      # reste disponible pour ton settings.py
+      APP_REPLICAS: ${APP_REPLICAS:-2}
     depends_on:
       - db
-    ports:
-      - "5000:5000"
     volumes:
-      - .:/app
-  
+      - .:/app:rw
+    restart: unless-stopped
+    networks:
+      - backend
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - '5000:80'
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app
+    restart: unless-stopped
+    networks:
+      - backend
+
   db:
     image: mysql:8.3
-    container_name: mysql-db
-    restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
@@ -27,6 +50,42 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+    networks:
+      - backend
+
+  prometheus:
+    image: prom/prometheus:latest
+    user: root  
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro     # <- montage du socket Docker
+    ports:
+      - '9090:9090'
+    restart: unless-stopped
+    networks:
+      - backend
+
+  grafana:
+    image: grafana/grafana:9.5.0
+    depends_on:
+      - prometheus
+    ports:
+      - '3000:3000'
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: 'secret'
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+    volumes:
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
+    networks:
+      - backend
+  
 
 volumes:
   mysql_data:
+  grafana_data:
+
+networks:
+  backend:
+    driver: bridge

@@ -15,9 +15,9 @@
   }
 
   ul {
-    list-style-type: none;
-    padding-left: 0;
-    max-width: 350px;
+    list-style: none;
+    padding: 0;
+    margin-bottom: 20px;
   }
 
   ul li {
@@ -48,63 +48,79 @@
   a.return-link:hover {
     color: #0056b3;
   }
+
+  #form-modif-produit {
+    display: none;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-top: 20px;
+    max-width: 400px;
+    background-color: #f9f9f9;
+  }
+
+  #form-modif-produit div {
+    margin-bottom: 8px;
+  }
 </style>
 
 <h1>Maison mère : {{ magasin.nom }}</h1>
 
 <ul>
-    <li><a href="#" onclick="chargerRapportVentes('{{ magasin.id }}')">📊 Générer un rapport des ventes</a></li>    
-    <li><a href="#" onclick="chargerTableauDeBord('{{ magasin.id }}')">📈 Tableau de bord des performances</a></li>
-    <!--<li><a href="#" onclick="afficherFormulaireApprovisionnement('{{ magasin.id }}')">➕ Approvisionner un magasin</a></li>-->
+  <li><a href="#" onclick="event.preventDefault(); chargerRapportVentes('{{ magasin.id }}')">📊 Générer un rapport des ventes</a></li>
+  <li><a href="#" onclick="event.preventDefault(); chargerTableauDeBord('{{ magasin.id }}')">📈 Tableau de bord des performances</a></li>
+  <!--<li><a href="#" onclick="event.preventDefault(); afficherFormulaireApprovisionnement('{{ magasin.id }}')">➕ Approvisionner un magasin</a></li>-->
+  <li><a href="#" onclick="event.preventDefault(); chargerListeProduits()">✏️ Modifier un produit</a></li>
 </ul>
 
 <div id="rapport-ventes-container"></div>
 <div id="tableau-bord-container"></div>
 <div id="approvisionnement-container"></div>
+<div id="modif-produit-container"></div>
+
+<!-- Formulaire de modification -->
+<div id="form-modif-produit">
+  <h2>Modifier un produit</h2>
+  <form id="modif-produit-form">
+    <input type="hidden" id="prod-id" name="id">
+    <div>
+      <label for="prod-nom">Nom :</label><br>
+      <input type="text" id="prod-nom" name="nom" required>
+    </div>
+    <div>
+      <label for="prod-prix">Prix :</label><br>
+      <input type="number" step="0.01" id="prod-prix" name="prix" required>
+    </div>
+    <div>
+      <label for="prod-desc">Description :</label><br>
+      <textarea id="prod-desc" name="description" required></textarea>
+    </div>
+    <button type="submit">Enregistrer</button>
+    <button type="button" onclick="document.getElementById('form-modif-produit').style.display='none'">Annuler</button>
+  </form>
+</div>
+
 <a href="{% url 'admin_page' %}" class="return-link">← Retour</a>
 
 <script>
 function chargerRapportVentes(magasinId) {
-    fetch(`/api/maison_mere/${magasinId}/rapport_ventes/`, {
-        credentials: 'include'
+  fetch(`/api/maison_mere/${magasinId}/rapport_ventes/`, { credentials: 'include' })
+    .then(response => { if (!response.ok) throw new Error('Erreur de chargement du rapport'); return response.json(); })
+    .then(data => {
+      const container = document.getElementById('rapport-ventes-container');
+      container.innerHTML = `
+        <h2>1. Total des ventes par magasin</h2>
+        <table border="1">
+          <tr><th>Magasin</th><th>Total des ventes ($)</th></tr>
+          ${data.ventes_par_magasin.map(v => `
+            <tr><td>${v.magasin}</td><td>${v.total_ventes.toFixed(2)}</td></tr>
+          `).join('')}
+        </table>
+      `;
     })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Erreur de chargement du rapport');
-            }
-            return response.json();
-        })
-        .then(data => {
-            const container = document.getElementById("rapport-ventes-container");
-            container.innerHTML = `
-                <h2>1. Total des ventes par magasin</h2>
-                <table border="1">
-                    <tr><th>Magasin</th><th>Total des ventes ($)</th></tr>
-                    ${data.ventes_par_magasin.map(v => `
-                        <tr><td>${v.magasin}</td><td>${v.total_ventes.toFixed(2)}</td></tr>
-                    `).join('')}
-                </table>
-                <h2>2. Produits les plus vendus</h2>
-                <table border="1">
-                    <tr><th>Produit</th><th>Quantité vendue</th></tr>
-                    ${data.produits_plus_vendus.map(p => `
-                        <tr><td>${p.nom}</td><td>${p.quantite}</td></tr>
-                    `).join('')}
-                </table>
-                <h2>3. Stocks restants par magasin</h2>
-                <table border="1">
-                    <tr><th>Magasin</th><th>Stock total</th></tr>
-                    ${data.stocks_restant.map(s => `
-                        <tr><td>${s.magasin}</td><td>${s.stock}</td></tr>
-                    `).join('')}
-                </table>
-            `;
-        })
-        .catch(error => {
-            alert(error.message);
-        });
+    .catch(error => alert(error.message));
 }
 </script>
+
 <script>
 function chargerTableauDeBord(magasinId) {
     fetch(`/api/maison_mere/${magasinId}/tableau_de_bord/`, {
@@ -153,54 +169,76 @@ function chargerTableauDeBord(magasinId) {
         });
 }
 </script>
+
 <script>
 function afficherFormulaireApprovisionnement(magasinId) {
-    fetch(`/api/maison_mere/${magasinId}/donnees_approvisionnement/`, {
-        credentials: 'include'
-    })
-        .then(response => response.json())
-        .then(data => {
-            const container = document.getElementById("approvisionnement-container");
-            container.innerHTML = `
-                <h2>Approvisionner un magasin</h2>
-                <form id="form-approvisionnement">
-                    <label for="destination">Choisir un magasin :</label>
-                    <select name="destination_magasin_id" required>
-                        ${data.magasins.map(m => 
-                            `<option value="${m.id}">${m.nom}</option>`
-                        ).join('')}
-                    </select>
-
-                    <h3>Produits disponibles au centre logistique :</h3>
-                    ${data.produits.map(p => {
-                        const stock = data.stocks[p.id] || 0;
-                        return `
-                            <div>
-                                <strong>${p.nom}</strong> (Stock : ${stock})
-                                <input type="number" name="quantite_${p.id}" min="0" placeholder="Quantité à transférer">
-                            </div>
-                        `;
-                    }).join('')}
-
-                    <button type="submit">Transférer</button>
-                </form>
-            `;
-
-            // Ajoute écouteur au formulaire
-            document.getElementById("form-approvisionnement").onsubmit = function(e) {
-                e.preventDefault();
-                const formData = new FormData(e.target);
-                fetch(`/api/maison_mere/${magasinId}/approvisionner/`, {
-                    method: 'POST',
-                    headers: { 'X-CSRFToken': '{{ csrf_token }}' },
-                    body: formData,
-                    credentials: 'include'
-                })
-                .then(r => r.json())
-                .then(result => {
-                    alert(result.message || "Approvisionnement effectué !");
-                });
-            };
-        });
+  fetch(`/api/maison_mere/${magasinId}/donnees_approvisionnement/`, { credentials: 'include' })
+    .then(response => response.json())
+    .then(data => {
+      const container = document.getElementById('approvisionnement-container');
+      container.innerHTML = `<h2>Approvisionner un magasin</h2><form id="form-approvisionnement">` +
+        `<label>Choisir un magasin :</label><select name="destination_magasin_id" required>` +
+        data.magasins.map(m => `<option value="${m.id}">${m.nom || ''}</option>`).join('') +
+        `</select><h3>Produits disponibles :</h3>` +
+        data.produits.map(p => `<div><strong>${p.nom || ''}</strong> (Stock : ${data.stocks[p.id]||0}) ` +
+        `<input type="number" name="quantite_${p.id}" min="0" placeholder="Quantité"></div>`).join('') +
+        `<button type="submit">Transférer</button></form>`;
+    });
 }
+</script>
+
+<script>
+// Modification de produit
+function chargerListeProduits() {
+  fetch('/api/produits/', { credentials: 'include' })
+    .then(response => response.json())
+    .then(data => {
+      const container = document.getElementById('modif-produit-container');
+      container.innerHTML = `<h2>Liste des produits</h2><ul>` +
+        data.map(p => {
+          const name = (p.nom || '').replace(/'/g, "\\'");
+          const desc = (p.description || '').replace(/'/g, "\\'");
+          return `<li>${name} — ${p.prix.toFixed(2)} $ ` +
+                 `<button onclick="afficherFormulaireModif(${p.id}, '${name}', ${p.prix}, '${desc}')">Modifier</button></li>`;
+        }).join('') +
+        `</ul>`;
+    })
+    .catch(error => alert('Erreur chargement produits : ' + error.message));
+}
+
+function afficherFormulaireModif(id, nom, prix, desc) {
+  document.getElementById('prod-id').value = id;
+  document.getElementById('prod-nom').value = nom;
+  document.getElementById('prod-prix').value = prix;
+  document.getElementById('prod-desc').value = desc;
+  document.getElementById('form-modif-produit').style.display = 'block';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('modif-produit-form').onsubmit = function(e) {
+    e.preventDefault();
+    const id = document.getElementById('prod-id').value;
+    const payload = {
+      nom: document.getElementById('prod-nom').value,
+      prix: document.getElementById('prod-prix').value,
+      description: document.getElementById('prod-desc').value
+    };
+    fetch(`/api/produits/${id}/`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      credentials: 'include',
+      body: JSON.stringify(payload)
+    })
+    .then(response => { if (!response.ok) throw new Error('Erreur mise à jour'); return response.json(); })
+    .then(() => {
+      alert('Produit mis à jour avec succès !');
+      document.getElementById('form-modif-produit').style.display = 'none';
+      chargerListeProduits();
+    })
+    .catch(err => alert(err.message));
+  };
+});
 </script>

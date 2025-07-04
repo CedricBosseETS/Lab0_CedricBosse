@@ -24,3 +24,4 @@ def mettre_a_jour_produit(produit_id: int, nom: str, prix: float, description: s
     produit.prix = prix
     produit.description = description
     produit.save()
+    return produit

@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import F, Sum
+from django.db.models import F, Sum, FloatField
 from caisse.models import Vente, VenteProduit, Produit, Stock, Magasin
 from django.utils.timezone import now, timedelta
 
@@ -74,6 +74,7 @@ def annuler_vente(magasin_id: int, vente_id: int):
 
     vente.delete()
 
+
 def get_ventes_par_magasin():
     return (
         Vente.objects
@@ -82,6 +83,7 @@ def get_ventes_par_magasin():
         .order_by('-total_ventes')
     )
 
+
 def get_produits_les_plus_vendus():
     return (
         VenteProduit.objects
@@ -89,6 +91,7 @@ def get_produits_les_plus_vendus():
         .annotate(total_vendus=Sum('quantite'))
         .order_by('-total_vendus')[:3]
     )
+
 
 def get_dashboard_stats():
     today = now().date()
@@ -126,3 +129,18 @@ def get_dashboard_stats():
         "surstock": list(surstock),
         "ventes_hebdo": list(ventes_hebdo),
     }
+
+
+def get_ventes_pour_maison_mere(maison_id: int) -> list[dict]:
+    """
+    Retourne la liste des ventes agrégées par magasin pour une maison mère donnée.
+    On considère tous les magasins de type 'magasin'.
+    """
+    qs = (
+        Vente.objects
+        .filter(magasin__type='magasin')
+        .values('magasin__id', 'magasin__nom')
+        .annotate(montant=Sum('total', output_field=FloatField()))
+        .order_by('-montant')
+    )
+    return list(qs)

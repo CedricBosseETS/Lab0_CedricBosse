@@ -88,10 +88,10 @@
 <h1>Approvisionner un magasin depuis le centre logistique</h1>
 
 {% load custom_filters %}
-<form method="post">
+<form id="bulk-form">
     {% csrf_token %}
     <label for="magasin">Choisir un magasin :</label>
-    <select name="destination_magasin_id" required>
+    <select name="destination_magasin_id" id="destination_magasin_id" required>
         {% for m in magasins %}
             {% if m.id != centre_logistique.id %}
                 <option value="{{ m.id }}">{{ m.nom }}</option>
@@ -103,14 +103,70 @@
     {% for produit in produits %}
         <div>
             <strong>{{ produit.nom }}</strong> (Stock : {{ stock_centre_dict|get_item:produit.id|default:"0" }})
-            <input type="number" name="quantite_{{ produit.id }}" min="0" placeholder="Quantité à transférer">
+            <input type="number" name="quantite_{{ produit.id }}" data-produit-id="{{ produit.id }}" min="0" placeholder="Quantité à transférer">
         </div>
     {% endfor %}
 
     <button type="submit">Transférer</button>
 </form>
 
-<a href="{% url 'admin_page' %}">← Retour au centre logistique</a>
+<div id="bulk-message" style="margin-top: 20px;"></div>
 
+<a href="{% url 'admin_page' %}">← Retour au centre logistique</a>
+<script>
+document.getElementById("bulk-form").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const messageDiv = document.getElementById("bulk-message");
+    messageDiv.innerHTML = "Traitement en cours...";
+
+    const magasinId = document.getElementById("destination_magasin_id").value;
+    const centreId = "{{ centre_logistique.id }}";
+
+    const inputs = document.querySelectorAll("input[data-produit-id]");
+    const items = [];
+
+    inputs.forEach(input => {
+        const quantite = parseInt(input.value);
+        const produitId = parseInt(input.getAttribute("data-produit-id"));
+        if (quantite > 0) {
+            items.push({ produit_id: produitId, quantite });
+        }
+    });
+
+    if (items.length === 0) {
+        messageDiv.innerHTML = "<p style='color: red;'>Aucun produit sélectionné.</p>";
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/centre/${magasinId}/bulk_reapprovisionner/`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ items })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+            throw new Error(data.error || "Erreur serveur");
+        }
+
+        let msg = "<p style='color: green;'>Réapprovisionnement terminé.</p>";
+        if (data.success) {
+            msg += `<ul>${data.success.map(m => `<li>${m}</li>`).join('')}</ul>`;
+        }
+        if (data.warnings) {
+            msg += `<p style='color: orange;'>Avertissements :</p><ul>${data.warnings.map(w => `<li>${w}</li>`).join('')}</ul>`;
+        }
+
+        messageDiv.innerHTML = msg;
+    } catch (err) {
+        messageDiv.innerHTML = `<p style='color: red;'>Erreur : ${err.message}</p>`;
+    }
+});
+</script>
 </body>
 </html>
