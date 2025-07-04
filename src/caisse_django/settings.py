@@ -27,6 +27,8 @@ except ValueError:
 # On ajoute app1, app2, … appN
 ALLOWED_HOSTS += [f'app-{i}' for i in range(1, replicas + 1)]
 
+SWAGGER_USE_COMPAT_RENDERERS = False
+
 # Application definition
 INSTALLED_APPS = [
     "django_prometheus",
