@@ -142,18 +142,18 @@ def transferer_stock(request):
 @permission_classes([IsAuthenticated])
 def finaliser_vente(request, magasin_id):
     logger.info("finaliser_vente_start", user=request.user.username, magasin_id=magasin_id)
-    panier = stock_service.get_panier(magasin_id, request.session)
+    panier = panier_service.get_panier(request.session, magasin_id)
     try:
         total = vente_service.creer_vente(panier, magasin_id)
     except Exception as e:
         logger.error("finaliser_vente_error", error=str(e))
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    stock_service.clear_panier(magasin_id, request.session)
+    panier_service.vider_panier(request.session, magasin_id)
     logger.info("finaliser_vente_end", magasin_id=magasin_id, total=total)
     return Response({"total": total}, status=status.HTTP_200_OK)
 
 
-@api_view(['POST'])
+@api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def annuler_vente(request, magasin_id, vente_id):
     logger.info("annuler_vente_start", user=request.user.username,
@@ -189,31 +189,55 @@ def ventes_par_magasin_api(request, magasin_id):
 
     return Response(data)
 
+
 @csrf_exempt
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 @cache_page(120)  # Mise en cache de 2 minutes
-def maison_mere_tableau_de_bord(request, magasin_id):
+def tableau_de_bord_api(request, magasin_id):
     logger.info("tableau_de_bord_start",
-                user=request.user.username if request.user.is_authenticated else "anonymous",
-                magasin_id=magasin_id)
+            user=request.user.username if request.user.is_authenticated else "anonymous",
+            magasin_id=magasin_id)    
+    # 1. Chiffre d’affaires par magasin
+    ventes_par_magasin = list(
+        VenteProduit.objects
+        .values('vente__magasin__nom')
+        .annotate(total_ventes=Sum(
+            ExpressionWrapper(F('quantite') * F('produit__prix'), output_field=FloatField())
+        ))
+        .order_by('-total_ventes')
+    )
 
-    raw_stats = vente_service.get_ventes_pour_maison_mere(maison_id=magasin_id)
-    ventes = []
-    for stat in raw_stats:
-        ventes.append({
-            'magasin_id': stat['magasin'].id,
-            'magasin_nom': stat['magasin'].nom,
-            'ventes_par_magasin': stat.get('ventes_par_magasin', 0),
-            'rupture_stock': stat.get('rupture_stock', 0),
-            'surstock': stat.get('surstock', 0),
-            'ventes_hebdo': stat.get('ventes_hebdo', 0),
-        })
+    # 2. Produits en rupture de stock (quantité <= 0)
+    rupture_stock = list(
+        Stock.objects
+        .filter(quantite__lte=0)
+        .values('produit__nom', 'magasin__nom', 'quantite')
+    )
 
-    total_ventes = sum(item['ventes_par_magasin'] for item in ventes)
-    logger.info("tableau_de_bord_end", ventes_par_magasin_total=total_ventes)
+    # 3. Produits en surstock (quantité > 100)
+    surstock = list(
+        Stock.objects
+        .filter(quantite__gt=100)
+        .values('produit__nom', 'magasin__nom', 'quantite')
+    )
 
-    return Response({"ventes": ventes, "total": total_ventes}, status=status.HTTP_200_OK)
+    # 4. Tendances hebdomadaires (ventes regroupées par jour)
+    ventes_hebdo = list(
+        VenteProduit.objects
+        .values('vente__date_heure__date')
+        .annotate(total=Sum(
+            ExpressionWrapper(F('quantite') * F('produit__prix'), output_field=FloatField())
+        ))
+        .order_by('vente__date_heure__date')
+    )
+
+    return JsonResponse({
+        "ventes_par_magasin": ventes_par_magasin,
+        "rupture_stock": rupture_stock,
+        "surstock": surstock,
+        "ventes_hebdo": ventes_hebdo
+    })
 
 
 @api_view(['GET'])
@@ -319,6 +343,114 @@ def reapprovisionner_api(request, magasin_id):
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     return Response({"success": msg}, status=status.HTTP_201_CREATED)
+
+@csrf_exempt
+@api_view(['POST'])
+def bulk_reapprovisionner_api(request, magasin_id):
+    magasin = magasin_service.get_magasin_by_id(magasin_id)
+    centre_logistique = magasin_service.get_centre_logistique()
+
+    items = request.data.get('items')
+    if not items or not isinstance(items, list):
+        return Response({"error": "Une liste 'items' est requise."}, status=status.HTTP_400_BAD_REQUEST)
+
+    messages = []
+    erreurs = []
+
+    try:
+        with transaction.atomic():
+            for item in items:
+                produit_id = item.get('produit_id')
+                quantite = item.get('quantite')
+
+                if not produit_id or not quantite:
+                    erreurs.append(f"Entrée invalide : {item}")
+                    continue
+
+                try:
+                    produit = Produit.objects.get(id=produit_id)
+                    quantite = int(quantite)
+                    if quantite <= 0:
+                        raise ValueError("Quantité non positive.")
+                except Exception as e:
+                    erreurs.append(f"Produit {produit_id} : {str(e)}")
+                    continue
+
+                stock_centre = stock_service.get_stock_entry(centre_logistique.id, produit_id)
+                if not stock_centre or stock_centre.quantite < quantite:
+                    erreurs.append(f"Stock insuffisant pour le produit {produit.nom}")
+                    continue
+
+                success, msg = stock_service.transferer_stock(
+                    produit_id,
+                    quantite,
+                    centre_logistique.id,
+                    magasin.id
+                )
+                messages.append(msg)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    response = {"success": messages}
+    if erreurs:
+        response["warnings"] = erreurs
+
+    return Response(response, status=status.HTTP_200_OK)
+
+def rapport_ventes_api(request, magasin_id):
+    # Vérifie que le magasin est bien la maison mère
+    try:
+        magasin = Magasin.objects.get(id=magasin_id, type='admin')
+    except Magasin.DoesNotExist:
+        return JsonResponse({"error": "Magasin introuvable ou non autorisé."}, status=404)
+
+    # 1. Total des ventes par magasin
+    ventes_par_magasin_qs = (
+        VenteProduit.objects
+        .values('vente__magasin__nom')
+        .annotate(
+            total_ventes=Sum(
+                ExpressionWrapper(
+                    F('quantite') * F('produit__prix'),
+                    output_field=FloatField()
+                )
+            )
+        )
+        .order_by('-total_ventes')
+    )
+    ventes_par_magasin = [
+        {"magasin": v["vente__magasin__nom"], "total_ventes": v["total_ventes"] or 0}
+        for v in ventes_par_magasin_qs
+    ]
+
+    # 2. Produits les plus vendus (toutes ventes confondues)
+    produits_plus_vendus_qs = (
+        VenteProduit.objects
+        .values('produit__nom')
+        .annotate(total_vendus=Sum('quantite'))
+        .order_by('-total_vendus')[:10]
+    )
+    produits_plus_vendus = [
+        {"nom": p["produit__nom"], "quantite": p["total_vendus"]}
+        for p in produits_plus_vendus_qs
+    ]
+
+    # 3. Stock total par magasin
+    stocks_qs = (
+        Stock.objects
+        .values('magasin__nom')
+        .annotate(stock_total=Sum('quantite'))
+    )
+    stocks_restant = [
+        {"magasin": s["magasin__nom"], "stock": s["stock_total"]}
+        for s in stocks_qs
+    ]
+
+    return JsonResponse({
+        "ventes_par_magasin": ventes_par_magasin,
+        "produits_plus_vendus": produits_plus_vendus,
+        "stocks_restant": stocks_restant
+    })
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

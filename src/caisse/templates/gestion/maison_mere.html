@@ -123,18 +123,50 @@ function chargerRapportVentes(magasinId) {
 
 <script>
 function chargerTableauDeBord(magasinId) {
-  fetch(`/api/maison_mere/${magasinId}/tableau_de_bord/`, { credentials: 'include' })
-    .then(response => { if (!response.ok) throw new Error('Erreur de chargement du tableau de bord'); return response.json(); })
-    .then(data => {
-      const container = document.getElementById('tableau-bord-container');
-      container.innerHTML = `
-        <h2>📌 Chiffre d’affaires par magasin</h2>
-        <ul>
-          ${data.ventes_par_magasin.map(v => `<li>${v['vente__magasin__nom']} : ${v.total_ventes.toFixed(2)} $</li>`).join('')}
-        </ul>
-      `;
+    fetch(`/api/maison_mere/${magasinId}/tableau_de_bord/`, {
+        credentials: 'include'
     })
-    .catch(error => alert(error.message));
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erreur de chargement du tableau de bord');
+            }
+            return response.json();
+        })
+        .then(data => {
+            const container = document.getElementById("tableau-bord-container");
+            container.innerHTML = `
+                <h2>📌 Chiffre d’affaires par magasin</h2>
+                <ul>
+                    ${data.ventes_par_magasin.map(v =>
+                        `<li>${v['vente__magasin__nom']} : ${v.total_ventes.toFixed(2)} $</li>`
+                    ).join('')}
+                </ul>
+
+                <h2>🚨 Produits en rupture de stock</h2>
+                <ul>
+                    ${data.rupture_stock.map(s =>
+                        `<li>${s['produit__nom']} à ${s['magasin__nom']} (${s.quantite})</li>`
+                    ).join('')}
+                </ul>
+
+                <h2>📦 Produits en surstock</h2>
+                <ul>
+                    ${data.surstock.map(s =>
+                        `<li>${s['produit__nom']} à ${s['magasin__nom']} (${s.quantite})</li>`
+                    ).join('')}
+                </ul>
+
+                <h2>📅 Tendances hebdomadaires</h2>
+                <ul>
+                    ${data.ventes_hebdo.map(v =>
+                        `<li>${v['vente__date_heure__date']} : ${v.total.toFixed(2)} $</li>`
+                    ).join('')}
+                </ul>
+            `;
+        })
+        .catch(error => {
+            alert(error.message);
+        });
 }
 </script>
 

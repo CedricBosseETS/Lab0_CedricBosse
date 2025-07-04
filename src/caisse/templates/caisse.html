@@ -144,7 +144,7 @@
 
         function annulerVente(id) {
             if (!confirm("Annuler la vente ?")) return;
-            fetch(`/api/magasins/${magasinId}/ventes/${id}/annuler/`, {
+            fetch(`/api/panier/${magasinId}/annuler/${id}/`, {
                 method: 'DELETE',
                 credentials: 'include',
                 headers: { 'X-CSRFToken': getCookie('csrftoken') }
