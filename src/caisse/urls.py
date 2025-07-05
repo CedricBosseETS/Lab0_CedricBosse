@@ -75,12 +75,13 @@ urlpatterns = [
     path('api/magasins/<int:magasin_id>/panier/finaliser/', finaliser_vente, name='finaliser_vente'),#adjust url to match anuler_vente
     path('api/panier/<int:magasin_id>/annuler/<int:vente_id>/', annuler_vente, name='annuler_vente'),
     path('api/rapports/ventes/', ventes_par_magasin_api, name='ventes_par_magasin'),
-    path('api/maison_mere/<int:magasin_id>/rapport_ventes/', rapport_ventes_api, name='rapport_ventes_api'),
-    path('api/maison_mere/<int:magasin_id>/tableau_de_bord/', tableau_de_bord_api, name='tableau_de_bord'),
-    path('api/maison_mere/<int:magasin_id>/donnees_approvisionnement/', donnees_approvisionnement, name='donnees_approvisionnement'),
-    path('api/centre/<int:magasin_id>/bulk_reapprovisionner/', bulk_reapprovisionner_api),
-    #path('api/maison_mere/<int:magasin_id>/approvisionner/', approvisionner, name='approvisionner'),
-    path('api/maison_mere/<int:centre_id>/approvisionner/', approvisionner, name='approvisionner'),
+    path('api/maison_mere/', include('reporting_service.urls')), #pas sur de si c'est bien comme ça
+    #path('api/maison_mere/<int:magasin_id>/rapport_ventes/', rapport_ventes_api, name='rapport_ventes_api'), déplacé dans reporting_service
+    #path('api/maison_mere/<int:magasin_id>/tableau_de_bord/', tableau_de_bord_api, name='tableau_de_bord'), déplacé dans reporting_service
+    #path('api/maison_mere/<int:magasin_id>/donnees_approvisionnement/', donnees_approvisionnement, name='donnees_approvisionnement'), déplacé dans reporting_service
+    path('api/centre/<int:magasin_id>/bulk_reapprovisionner/', bulk_reapprovisionner_api), 
+    #path('api/maison_mere/<int:magasin_id>/approvisionner/', approvisionner, name='approvisionner'), doit être réparer
+    #path('api/maison_mere/<int:centre_id>/approvisionner/', approvisionner, name='approvisionner'),#Je pense n'est pas utilisé
 
     # --- Vues classiques (UI) ---
     path('', home.home_view, name='home'),

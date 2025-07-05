@@ -1,4 +1,4 @@
-# Lab1_CedricBosse
+# Application de magasin
 
 ## Description
 

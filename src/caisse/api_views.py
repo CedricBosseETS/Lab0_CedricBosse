@@ -189,7 +189,7 @@ def ventes_par_magasin_api(request, magasin_id):
 
     return Response(data)
 
-
+'''
 @csrf_exempt
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -238,8 +238,8 @@ def tableau_de_bord_api(request, magasin_id):
         "surstock": surstock,
         "ventes_hebdo": ventes_hebdo
     })
-
-
+'''
+'''
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def donnees_approvisionnement(request, maison_mere_id):
@@ -259,7 +259,7 @@ def donnees_approvisionnement(request, maison_mere_id):
     }
     logger.info("donnees_approvisionnement_end", magasins=len(magasins), produits=len(produits))
     return Response(data)
-
+'''
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -396,7 +396,7 @@ def bulk_reapprovisionner_api(request, magasin_id):
         response["warnings"] = erreurs
 
     return Response(response, status=status.HTTP_200_OK)
-
+'''
 def rapport_ventes_api(request, magasin_id):
     # Vérifie que le magasin est bien la maison mère
     try:
@@ -451,7 +451,7 @@ def rapport_ventes_api(request, magasin_id):
         "produits_plus_vendus": produits_plus_vendus,
         "stocks_restant": stocks_restant
     })
-
+'''
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def rechercher_produits_disponibles(request, magasin_id):

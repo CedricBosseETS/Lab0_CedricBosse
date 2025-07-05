@@ -3,8 +3,7 @@
 ## Statut
 Accepté
 
-Utilisation d'un Load Balancer
-
+## Utilisation d'un Load Balancer
 L'application Django est maintenant déployée derrière un Load Balancer (NGINX) avec plusieurs instances de l'application via Docker Compose.
 
 ## Contexte
