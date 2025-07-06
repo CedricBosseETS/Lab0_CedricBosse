@@ -25,14 +25,13 @@ from .api_views import (
     finaliser_vente,
     annuler_vente,
     ventes_par_magasin_api,
-    tableau_de_bord_api,
-    donnees_approvisionnement,
     approvisionner,
     reapprovisionner_api,
     rechercher_produits_disponibles,
-    rapport_ventes_api,
     bulk_reapprovisionner_api   
 )
+
+from reporting_service import urls as reporting_urls
 
 # Documentation Swagger/OpenAPI
 schema_view = get_schema_view(
@@ -75,7 +74,7 @@ urlpatterns = [
     path('api/magasins/<int:magasin_id>/panier/finaliser/', finaliser_vente, name='finaliser_vente'),#adjust url to match anuler_vente
     path('api/panier/<int:magasin_id>/annuler/<int:vente_id>/', annuler_vente, name='annuler_vente'),
     path('api/rapports/ventes/', ventes_par_magasin_api, name='ventes_par_magasin'),
-    path('api/maison_mere/', include('reporting_service.urls')), #pas sur de si c'est bien comme ça
+    path('api/maison_mere/', include(reporting_urls)), #pas sur de si c'est bien comme ça
     #path('api/maison_mere/<int:magasin_id>/rapport_ventes/', rapport_ventes_api, name='rapport_ventes_api'), déplacé dans reporting_service
     #path('api/maison_mere/<int:magasin_id>/tableau_de_bord/', tableau_de_bord_api, name='tableau_de_bord'), déplacé dans reporting_service
     #path('api/maison_mere/<int:magasin_id>/donnees_approvisionnement/', donnees_approvisionnement, name='donnees_approvisionnement'), déplacé dans reporting_service

@@ -6,8 +6,8 @@ from django.db.models import Sum, F, ExpressionWrapper, FloatField
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from rest_framework import status, viewsets, filters
-from .models import Magasin, Produit, Stock, Vente, VenteProduit #might need fixing
-from .serializers import (
+from caisse.models import Magasin, Produit, Stock, Vente, VenteProduit #might need fixing
+from caisse.serializers import (
     MagasinSerializer,
     ProduitSerializer,
     StockSerializer,

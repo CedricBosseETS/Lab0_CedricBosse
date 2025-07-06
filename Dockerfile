@@ -23,12 +23,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copier les sources, les tests et le script wait-for-it
 COPY src/ src/
-#COPY wait-for-it.sh wait-for-it.sh
-#RUN chmod +x wait-for-it.sh
 
 # Copier le script start.sh
 COPY start.sh start.sh
 RUN chmod +x start.sh
 
-# Démarrage : attend la DB puis exécute start.sh
-CMD ["bash", "wait-for-it.sh", "db:3306", "--", "bash", "start.sh"]
+CMD ["bash", "start.sh"]

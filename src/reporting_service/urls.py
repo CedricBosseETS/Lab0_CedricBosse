@@ -9,7 +9,7 @@ from .api_views import (
 )
 
 urlpatterns = [
-    path('api/maison_mere/<int:magasin_id>/rapport_ventes/', rapport_ventes_api, name='rapport_ventes_api'),
-    path('api/maison_mere/<int:magasin_id>/tableau_de_bord/', tableau_de_bord_api, name='tableau_de_bord'),
-    path('api/maison_mere/<int:magasin_id>/donnees_approvisionnement/', donnees_approvisionnement, name='donnees_approvisionnement'),
+    path('<int:magasin_id>/rapport_ventes/', rapport_ventes_api, name='rapport_ventes_api'),
+    path('<int:magasin_id>/tableau_de_bord/', tableau_de_bord_api, name='tableau_de_bord'),
+    path('<int:magasin_id>/donnees_approvisionnement/', donnees_approvisionnement, name='donnees_approvisionnement'),
 ]

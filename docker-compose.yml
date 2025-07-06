@@ -10,7 +10,6 @@ services:
     
   app:
     build: .
-    # plus de container_name, on scale librement
     environment:
       PYTHONPATH: /app/src
       DJANGO_SETTINGS_MODULE: src.caisse_django.settings
@@ -53,6 +52,29 @@ services:
     restart: unless-stopped
     networks:
       - backend
+
+  reporting_service:
+    build: .
+    environment:
+      PYTHONPATH: /app/src
+      DJANGO_SETTINGS_MODULE: reporting_service.settings
+      DB_HOST: db
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      ALLOWED_HOSTS: 'reporting_service,nginx,localhost,127.0.0.1'
+      MANAGE_PATH: /app/src/reporting_service/manage.py
+      DJANGO_PORT: 8001
+    volumes:
+      - .:/app:rw
+    depends_on:
+      - db
+      - redis
+    ports:
+      - "8001:8001"
+    restart: unless-stopped
+    networks:
+      - backend 
 
   prometheus:
     image: prom/prometheus:latest
