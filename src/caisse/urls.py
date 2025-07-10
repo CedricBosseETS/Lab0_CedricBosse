@@ -66,7 +66,7 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path('api/magasins/<int:magasin_id>/reapprovisionner/', reapprovisionner_api, name='reapprovisionner_api'),
     #path("api/magasins/<int:magasin_id>/ventes/", ventes_par_magasin_api), moved to vente_service
-    path('api/magasins/<int:magasin_id>/produits_disponibles/', rechercher_produits_disponibles, name='produits_disponibles'),
+    #path('api/magasins/<int:magasin_id>/produits_disponibles/', rechercher_produits_disponibles, name='produits_disponibles'), dans produit_service
     path('api/stock/transferer/', transferer_stock, name='transferer_stock'),
     path("api/magasins/<int:magasin_id>/panier/", afficher_panier),
     path("api/magasins/<int:magasin_id>/panier/ajouter/", ajouter_au_panier),

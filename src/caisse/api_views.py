@@ -452,6 +452,7 @@ def rapport_ventes_api(request, magasin_id):
         "stocks_restant": stocks_restant
     })
 '''
+'''
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def rechercher_produits_disponibles(request, magasin_id):
@@ -475,6 +476,7 @@ def rechercher_produits_disponibles(request, magasin_id):
 
     serializer = ProduitSerializer(produits_disponibles, many=True)
     return Response(serializer.data)
+'''
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
