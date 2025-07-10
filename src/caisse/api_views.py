@@ -137,7 +137,7 @@ def transferer_stock(request):
     payload = {"details": messages} if not errors else {"error": errors}
     logger.info("transferer_stock_end", status_code=status_code, errors=errors)
     return Response(payload, status=status_code)
-
+'''
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def finaliser_vente(request, magasin_id):
@@ -151,8 +151,8 @@ def finaliser_vente(request, magasin_id):
     panier_service.vider_panier(request.session, magasin_id)
     logger.info("finaliser_vente_end", magasin_id=magasin_id, total=total)
     return Response({"total": total}, status=status.HTTP_200_OK)
-
-
+'''
+'''
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def annuler_vente(request, magasin_id, vente_id):
@@ -165,8 +165,8 @@ def annuler_vente(request, magasin_id, vente_id):
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     logger.info("annuler_vente_end", magasin_id=magasin_id, vente_id=vente_id)
     return Response({"message": "Vente annulée"}, status=status.HTTP_200_OK)
-
-
+'''
+'''
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def ventes_par_magasin_api(request, magasin_id):
@@ -188,7 +188,7 @@ def ventes_par_magasin_api(request, magasin_id):
         data.append(vente_data)
 
     return Response(data)
-
+'''
 '''
 @csrf_exempt
 @api_view(['GET'])

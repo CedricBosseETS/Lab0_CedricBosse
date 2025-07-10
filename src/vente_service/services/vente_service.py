@@ -1,8 +1,10 @@
-'''
 from django.db import transaction
 from django.db.models import F, Sum, FloatField
-from caisse.models import Vente, VenteProduit, Produit, Stock, Magasin
 from django.utils.timezone import now, timedelta
+from .models import Vente, VenteProduit
+from produit_service.models import Produit
+from stock_service.models import Stock
+from caisse.models import Magasin
 
 @transaction.atomic
 def creer_vente(panier: dict, magasin_id: int) -> float:
@@ -145,4 +147,3 @@ def get_ventes_pour_maison_mere(maison_id: int) -> list[dict]:
         .order_by('-montant')
     )
     return list(qs)
-'''

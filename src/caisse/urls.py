@@ -32,6 +32,7 @@ from .api_views import (
 )
 
 from reporting_service import urls as reporting_urls
+from vente_service import urls as vente_urls
 
 # Documentation Swagger/OpenAPI
 schema_view = get_schema_view(
@@ -64,16 +65,18 @@ urlpatterns = [
     # --- API REST ---
     path('api/', include(router.urls)),
     path('api/magasins/<int:magasin_id>/reapprovisionner/', reapprovisionner_api, name='reapprovisionner_api'),
-    path("api/magasins/<int:magasin_id>/ventes/", ventes_par_magasin_api),
+    #path("api/magasins/<int:magasin_id>/ventes/", ventes_par_magasin_api), moved to vente_service
     path('api/magasins/<int:magasin_id>/produits_disponibles/', rechercher_produits_disponibles, name='produits_disponibles'),
     path('api/stock/transferer/', transferer_stock, name='transferer_stock'),
     path("api/magasins/<int:magasin_id>/panier/", afficher_panier),
     path("api/magasins/<int:magasin_id>/panier/ajouter/", ajouter_au_panier),
     path("api/magasins/<int:magasin_id>/panier/retirer/", retirer_du_panier),
     path("api/magasins/<int:magasin_id>/panier/vider/", vider_panier),
-    path('api/magasins/<int:magasin_id>/panier/finaliser/', finaliser_vente, name='finaliser_vente'),#adjust url to match anuler_vente
-    path('api/panier/<int:magasin_id>/annuler/<int:vente_id>/', annuler_vente, name='annuler_vente'),
-    path('api/rapports/ventes/', ventes_par_magasin_api, name='ventes_par_magasin'),
+    # les urls ont changer donc va falloir ajouter /vente devant les routes en utilisation
+    path('api/vente/', include(vente_urls)),
+    #path('api/magasins/<int:magasin_id>/panier/finaliser/', finaliser_vente, name='finaliser_vente'),#adjust url to match anuler_vente moved to vente_service
+    #path('api/panier/<int:magasin_id>/annuler/<int:vente_id>/', annuler_vente, name='annuler_vente'), moved to vente_service
+    #path('api/rapports/ventes/', ventes_par_magasin_api, name='ventes_par_magasin'), moved to vente_service
     path('api/maison_mere/', include(reporting_urls)), #pas sur de si c'est bien comme ça
     #path('api/maison_mere/<int:magasin_id>/rapport_ventes/', rapport_ventes_api, name='rapport_ventes_api'), déplacé dans reporting_service
     #path('api/maison_mere/<int:magasin_id>/tableau_de_bord/', tableau_de_bord_api, name='tableau_de_bord'), déplacé dans reporting_service
