@@ -9,7 +9,7 @@ from .api_views import (
 )
 
 urlpatterns = [
-    path('api/magasins/<int:magasin_id>/reapprovisionner/', reapprovisionner_api, name='reapprovisionner_api'),
-    path('api/stock/transferer/', transferer_stock, name='transferer_stock'),
-    path('api/centre/<int:magasin_id>/bulk_reapprovisionner/', bulk_reapprovisionner_api), 
+    path('magasins/<int:magasin_id>/reapprovisionner/', reapprovisionner_api, name='reapprovisionner_api'),
+    path('stock/transferer/', transferer_stock, name='transferer_stock'),
+    path('centre/<int:magasin_id>/bulk_reapprovisionner/', bulk_reapprovisionner_api), 
 ]

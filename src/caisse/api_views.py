@@ -480,7 +480,7 @@ def rechercher_produits_disponibles(request, magasin_id):
     serializer = ProduitSerializer(produits_disponibles, many=True)
     return Response(serializer.data)
 '''
-
+'''
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def afficher_panier(request, magasin_id):
@@ -552,3 +552,4 @@ def retirer_du_panier(request, magasin_id):
 def vider_panier(request, magasin_id):
     panier_service.vider_panier(request.session, magasin_id)
     return Response({"message": "Panier vidé."})
+'''

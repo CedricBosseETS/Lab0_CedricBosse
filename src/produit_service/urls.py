@@ -7,5 +7,5 @@ from .api_views import (
 )
 
 urlpatterns = [
-    path('api/magasins/<int:magasin_id>/produits_disponibles/', rechercher_produits_disponibles, name='produits_disponibles')
+    path('magasins/<int:magasin_id>/produits_disponibles/', rechercher_produits_disponibles, name='produits_disponibles')
 ]

@@ -99,7 +99,6 @@ services:
     networks:
       - backend 
 
-
   vente_service:
     build: .
     environment:
@@ -111,6 +110,52 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       ALLOWED_HOSTS: 'vente_service,nginx,localhost,127.0.0.1'
       MANAGE_PATH: /app/src/vente_service/manage.py
+      DJANGO_PORT: 8001
+    volumes:
+      - .:/app:rw
+    depends_on:
+      - db
+      - redis
+    ports:
+      - "8001:8001"
+    restart: unless-stopped
+    networks:
+      - backend 
+
+  stock_service:
+    build: .
+    environment:
+      PYTHONPATH: /app/src
+      DJANGO_SETTINGS_MODULE: stock_service.settings
+      DB_HOST: db
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      ALLOWED_HOSTS: 'stock_service,nginx,localhost,127.0.0.1'
+      MANAGE_PATH: /app/src/stock_service/manage.py
+      DJANGO_PORT: 8001
+    volumes:
+      - .:/app:rw
+    depends_on:
+      - db
+      - redis
+    ports:
+      - "8001:8001"
+    restart: unless-stopped
+    networks:
+      - backend 
+
+  panier_service:
+    build: .
+    environment:
+      PYTHONPATH: /app/src
+      DJANGO_SETTINGS_MODULE: panier_service.settings
+      DB_HOST: db
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      ALLOWED_HOSTS: 'panier_service,nginx,localhost,127.0.0.1'
+      MANAGE_PATH: /app/src/panier_service/manage.py
       DJANGO_PORT: 8001
     volumes:
       - .:/app:rw
