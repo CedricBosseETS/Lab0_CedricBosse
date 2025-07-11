@@ -108,7 +108,7 @@ class VenteViewSet(viewsets.ReadOnlyModelViewSet):
         logger.info("vente_list_end", count=len(resp.data), status_code=resp.status_code)
         return resp
 
-
+'''
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -137,6 +137,7 @@ def transferer_stock(request):
     payload = {"details": messages} if not errors else {"error": errors}
     logger.info("transferer_stock_end", status_code=status_code, errors=errors)
     return Response(payload, status=status_code)
+'''
 '''
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -299,7 +300,7 @@ def approvisionner(request, centre_id):
         return Response({"error": erreurs}, status=status.HTTP_400_BAD_REQUEST)
 
     return Response({"message": "Approvisionnement terminé avec succès.", "details": messages}, status=status.HTTP_200_OK)
-
+'''
 @csrf_exempt
 @api_view(['POST'])
 def reapprovisionner_api(request, magasin_id):
@@ -343,7 +344,8 @@ def reapprovisionner_api(request, magasin_id):
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     return Response({"success": msg}, status=status.HTTP_201_CREATED)
-
+'''
+'''
 @csrf_exempt
 @api_view(['POST'])
 def bulk_reapprovisionner_api(request, magasin_id):
@@ -396,6 +398,7 @@ def bulk_reapprovisionner_api(request, magasin_id):
         response["warnings"] = erreurs
 
     return Response(response, status=status.HTTP_200_OK)
+'''
 '''
 def rapport_ventes_api(request, magasin_id):
     # Vérifie que le magasin est bien la maison mère

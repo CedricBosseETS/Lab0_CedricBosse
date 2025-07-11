@@ -5,10 +5,3 @@ class MagasinSerializer(serializers.ModelSerializer):
     class Meta:
         model = Magasin
         fields = '__all__'
-
-class StockSerializer(serializers.ModelSerializer):
-    produit = ProduitSerializer()
-
-    class Meta:
-        model = Stock
-        fields = ['id', 'produit', 'quantite', 'magasin']

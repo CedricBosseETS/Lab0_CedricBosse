@@ -64,10 +64,10 @@ urlpatterns = [
 
     # --- API REST ---
     path('api/', include(router.urls)),
-    path('api/magasins/<int:magasin_id>/reapprovisionner/', reapprovisionner_api, name='reapprovisionner_api'),
+    #path('api/magasins/<int:magasin_id>/reapprovisionner/', reapprovisionner_api, name='reapprovisionner_api'),
     #path("api/magasins/<int:magasin_id>/ventes/", ventes_par_magasin_api), moved to vente_service
     #path('api/magasins/<int:magasin_id>/produits_disponibles/', rechercher_produits_disponibles, name='produits_disponibles'), dans produit_service
-    path('api/stock/transferer/', transferer_stock, name='transferer_stock'),
+    #path('api/stock/transferer/', transferer_stock, name='transferer_stock'),
     path("api/magasins/<int:magasin_id>/panier/", afficher_panier),
     path("api/magasins/<int:magasin_id>/panier/ajouter/", ajouter_au_panier),
     path("api/magasins/<int:magasin_id>/panier/retirer/", retirer_du_panier),
@@ -81,7 +81,7 @@ urlpatterns = [
     #path('api/maison_mere/<int:magasin_id>/rapport_ventes/', rapport_ventes_api, name='rapport_ventes_api'), déplacé dans reporting_service
     #path('api/maison_mere/<int:magasin_id>/tableau_de_bord/', tableau_de_bord_api, name='tableau_de_bord'), déplacé dans reporting_service
     #path('api/maison_mere/<int:magasin_id>/donnees_approvisionnement/', donnees_approvisionnement, name='donnees_approvisionnement'), déplacé dans reporting_service
-    path('api/centre/<int:magasin_id>/bulk_reapprovisionner/', bulk_reapprovisionner_api), 
+    #path('api/centre/<int:magasin_id>/bulk_reapprovisionner/', bulk_reapprovisionner_api), 
     #path('api/maison_mere/<int:magasin_id>/approvisionner/', approvisionner, name='approvisionner'), doit être réparer
     #path('api/maison_mere/<int:centre_id>/approvisionner/', approvisionner, name='approvisionner'),#Je pense n'est pas utilisé
 
