@@ -44,6 +44,11 @@ INSTALLED_APPS = [
     "drf_yasg",
 
     "caisse",
+    "vente_service",
+    "reporting_service",
+    "stock_service",
+    "produit_service",
+    "panier_service",
 ]
 
 MIDDLEWARE = [

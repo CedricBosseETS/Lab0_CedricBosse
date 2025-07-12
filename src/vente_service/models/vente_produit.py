@@ -2,7 +2,7 @@
 
 from django.db import models
 from .vente import Vente
-from caisse.produit import Produit
+from produit_service.models import Produit
 
 class VenteProduit(models.Model):
     """Représente les produits d'une vente."""
