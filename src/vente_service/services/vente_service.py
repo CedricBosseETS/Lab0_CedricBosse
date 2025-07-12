@@ -1,7 +1,7 @@
 from django.db import transaction
 from django.db.models import F, Sum, FloatField
 from django.utils.timezone import now, timedelta
-from .models import Vente, VenteProduit
+from vente_service.models import Vente, VenteProduit
 from produit_service.models import Produit
 from stock_service.models import Stock
 from caisse.models import Magasin

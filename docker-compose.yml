@@ -87,7 +87,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       ALLOWED_HOSTS: 'produit_service,nginx,localhost,127.0.0.1'
       MANAGE_PATH: /app/src/produit_service/manage.py
-      DJANGO_PORT: 8001
+      DJANGO_PORT: 8002
     volumes:
       - .:/app:rw
     depends_on:
@@ -110,7 +110,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       ALLOWED_HOSTS: 'vente_service,nginx,localhost,127.0.0.1'
       MANAGE_PATH: /app/src/vente_service/manage.py
-      DJANGO_PORT: 8001
+      DJANGO_PORT: 8003
     volumes:
       - .:/app:rw
     depends_on:
@@ -133,7 +133,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       ALLOWED_HOSTS: 'stock_service,nginx,localhost,127.0.0.1'
       MANAGE_PATH: /app/src/stock_service/manage.py
-      DJANGO_PORT: 8001
+      DJANGO_PORT: 8004
     volumes:
       - .:/app:rw
     depends_on:
@@ -156,7 +156,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       ALLOWED_HOSTS: 'panier_service,nginx,localhost,127.0.0.1'
       MANAGE_PATH: /app/src/panier_service/manage.py
-      DJANGO_PORT: 8001
+      DJANGO_PORT: 8005
     volumes:
       - .:/app:rw
     depends_on:

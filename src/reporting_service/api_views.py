@@ -6,8 +6,12 @@ from django.db.models import Sum, F, ExpressionWrapper, FloatField
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from rest_framework import status, viewsets, filters
-from caisse.models import Magasin, Produit, Stock, Vente, VenteProduit #might need fixing
-from caisse.serializers import (
+from caisse.models import Magasin
+from produit_service.models import Produit
+from stock_service.models import Stock
+from vente_service.models import Vente, VenteProduit
+
+from caisse.serializers import (    #fix
     MagasinSerializer,
     ProduitSerializer,
     StockSerializer,
@@ -25,7 +29,10 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 
-from caisse.services import stock_service, magasin_service, vente_service, produit_service, panier_service #might need fixing
+from caisse.services import magasin_service
+from stock_service.services import stock_service
+from produit_service.services import produit_service
+
 
 logger = structlog.get_logger()
 

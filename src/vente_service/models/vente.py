@@ -2,7 +2,7 @@
 
 from django.db import models
 from django.utils.timezone import now
-from .magasin import Magasin
+from caisse.models import Magasin
 
 class Vente(models.Model):
     """Représente une vente."""

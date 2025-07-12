@@ -3,8 +3,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 
-from ..services import magasin_service, stock_service, produit_service
-from caisse.models import Produit, Magasin
+from .services import magasin_service, produit_service
+from stock_service.services import stock_service
+from produit_service.services import produit_service
+from caisse.models import Magasin
+from produit_service.models import Produit
 
 
 def page_caisse(request, magasin_id):

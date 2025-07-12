@@ -2,10 +2,13 @@
 
 from django.shortcuts import render, redirect
 from django.views.decorators.http import require_POST
-from ..services import magasin_service, vente_service, stock_service, produit_service
+from vente_service.services import vente_service
+from produit_service.services import produit_service
+from stock_service.services import stock_service
 from reporting_service.services import reporting_service
-from caisse.models import Magasin, Produit
-
+from caisse.models import Magasin
+from produit_service.models import Produit
+import caisse.services.magasin_service as magasin_service
 
 def admin_page(request):
     """Affiche les entités administratives (hors magasins)."""
