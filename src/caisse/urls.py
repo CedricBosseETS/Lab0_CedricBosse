@@ -51,11 +51,12 @@ urlpatterns = [
 
     # --- API REST ---
     path('api/', include(router.urls)),
-    path('api/stock/', include(stock_urls)),
-    path('api/produits/', include(produit_urls)),
-    path('api/vente/', include(vente_urls)),
-    path('api/panier/', include(panier_urls)),
-    path('api/maison_mere/', include(reporting_urls)),
+    #path('api/stock/', include(stock_urls)),
+    #path('api/produits/', include(produit_urls)),
+    #path('api/vente/', include(vente_urls)),
+    #path('api/panier/', include(panier_urls)),
+    #path('api/maison_mere/', include(reporting_urls)),
+    
     #path('api/magasins/<int:magasin_id>/reapprovisionner/', reapprovisionner_api, name='reapprovisionner_api'),
     #path("api/magasins/<int:magasin_id>/ventes/", ventes_par_magasin_api), moved to vente_service
 

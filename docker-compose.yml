@@ -60,7 +60,66 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       ALLOWED_HOSTS: 'app,nginx,localhost,127.0.0.1'
-      # reste disponible pour ton settings.py
+    depends_on:
+      - db
+    restart: unless-stopped
+    networks:
+      - backend
+
+  reporting_service:
+    build: ./src/reporting_service/
+    environment:
+      PYTHONPATH: /app/src
+      DB_HOST: db
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      ALLOWED_HOSTS: 'app,nginx,localhost,127.0.0.1'
+    depends_on:
+      - db
+    restart: unless-stopped
+    networks:
+      - backend
+
+  produit_service:
+    build: ./src/produit_service/
+    environment:
+      PYTHONPATH: /app/src
+      DB_HOST: db
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      ALLOWED_HOSTS: 'app,nginx,localhost,127.0.0.1'
+    depends_on:
+      - db
+    restart: unless-stopped
+    networks:
+      - backend
+
+  vente_service:
+    build: ./src/vente_service/
+    environment:
+      PYTHONPATH: /app/src
+      DB_HOST: db
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      ALLOWED_HOSTS: 'app,nginx,localhost,127.0.0.1'
+    depends_on:
+      - db
+    restart: unless-stopped
+    networks:
+      - backend
+
+  panier_service:
+    build: ./src/panier_service/
+    environment:
+      PYTHONPATH: /app/src
+      DB_HOST: db
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      ALLOWED_HOSTS: 'app,nginx,localhost,127.0.0.1'
     depends_on:
       - db
     restart: unless-stopped

@@ -47,6 +47,12 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    "rest_framework",
+    "corsheaders",
+    "drf_yasg",  
+
+    'reporting',
 ]
 
 ROOT_URLCONF = 'reporting_service.urls'
