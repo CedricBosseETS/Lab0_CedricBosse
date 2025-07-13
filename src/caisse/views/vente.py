@@ -1,8 +1,8 @@
 """Vues liées à la gestion des ventes dans l'application caisse."""
 
 from django.shortcuts import render, redirect
-from caisse.models import Vente
-from ..services import vente_service
+from vente_service.models import Vente
+from vente_service.services import vente_service
 
 
 def liste_ventes(request, magasin_id):

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Magasin, Produit, Stock, Vente, VenteProduit
+from .models import Magasin
 
 class MagasinSerializer(serializers.ModelSerializer):
     class Meta:

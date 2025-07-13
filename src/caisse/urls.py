@@ -12,24 +12,8 @@ from drf_yasg import openapi
 from .views import gestion, home, magasins, caisse, panier, vente
 from .views.panier import afficher_panier_view
 
-from .api_views import (
-    MagasinViewSet,
-    ProduitViewSet,
-    StockViewSet,
-    VenteViewSet,
-    transferer_stock,
-    afficher_panier,
-    ajouter_au_panier,
-    retirer_du_panier,
-    vider_panier,
-    finaliser_vente,
-    annuler_vente,
-    ventes_par_magasin_api,
-    approvisionner,
-    reapprovisionner_api,
-    rechercher_produits_disponibles,
-    bulk_reapprovisionner_api   
-)
+
+from caisse.api_views import MagasinViewSet, ProduitViewSet, StockViewSet, VenteViewSet
 
 from reporting_service import urls as reporting_urls
 from vente_service import urls as vente_urls
@@ -98,7 +82,7 @@ urlpatterns = [
     path('', home.home_view, name='home'),
     path('magasins/', magasins.page_magasins, name='magasins'),
     path('caisse/<int:magasin_id>/', caisse.page_caisse, name='page_caisse'),
-    path('panier/<int:magasin_id>/', afficher_panier_view, name='panier'),
+    path('panier/<int:magasin_id>/', afficher_panier_view, name='panier'), #panier.afficher panier
 
     # Administration générale
     path('gestion/', gestion.admin_page, name='admin_page'),

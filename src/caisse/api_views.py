@@ -6,13 +6,15 @@ from django.db.models import Sum, F, ExpressionWrapper, FloatField
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from rest_framework import status, viewsets, filters
-from .models import Magasin, Produit, Stock, Vente, VenteProduit
-from .serializers import (
-    MagasinSerializer,
-    ProduitSerializer,
-    StockSerializer,
-    VenteSerializer
-)
+from caisse.models import Magasin
+from produit_service.models import Produit
+from stock_service.models import Stock
+from vente_service.models import Vente, VenteProduit
+from caisse.serializers import MagasinSerializer
+from produit_service.serializers import ProduitSerializer
+from stock_service.serializers import StockSerializer
+from vente_service.serializers import VenteSerializer
+
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -25,7 +27,12 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 
-from caisse.services import stock_service, magasin_service, vente_service, produit_service, panier_service
+from caisse.services import magasin_service
+from stock_service.services import stock_service
+from vente_service.services import vente_service
+from produit_service.services import produit_service
+from panier_service.services import panier_service
+
 
 logger = structlog.get_logger()
 
@@ -261,7 +268,7 @@ def donnees_approvisionnement(request, maison_mere_id):
     logger.info("donnees_approvisionnement_end", magasins=len(magasins), produits=len(produits))
     return Response(data)
 '''
-
+'''
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 @csrf_exempt
@@ -300,6 +307,7 @@ def approvisionner(request, centre_id):
         return Response({"error": erreurs}, status=status.HTTP_400_BAD_REQUEST)
 
     return Response({"message": "Approvisionnement terminé avec succès.", "details": messages}, status=status.HTTP_200_OK)
+'''
 '''
 @csrf_exempt
 @api_view(['POST'])

@@ -3,8 +3,10 @@
 from django.shortcuts import redirect, render
 from django.contrib import messages
 
-from caisse.models import Produit, Magasin
-from ..services import stock_service, vente_service
+from caisse.models import Magasin
+from produit_service.models import Produit
+from stock_service.services import stock_service
+from vente_service.services import vente_service
 
 
 def ajouter_au_panier(request, magasin_id):

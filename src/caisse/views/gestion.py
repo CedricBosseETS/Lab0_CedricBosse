@@ -8,7 +8,7 @@ from stock_service.services import stock_service
 from reporting_service.services import reporting_service
 from caisse.models import Magasin
 from produit_service.models import Produit
-import caisse.services.magasin_service as magasin_service
+from caisse.services import magasin_service
 
 def admin_page(request):
     """Affiche les entités administratives (hors magasins)."""
