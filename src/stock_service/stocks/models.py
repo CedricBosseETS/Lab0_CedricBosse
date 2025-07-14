@@ -1,14 +1,10 @@
 from django.db import models
-from produit_service.produits.models import Produit
-from caisse.models import Magasin
 
 class Stock(models.Model):
-    """Représente le stock d’un produit dans un magasin."""
-    produit = models.ForeignKey(Produit, on_delete=models.CASCADE, related_name="stocks")
-    magasin = models.ForeignKey(Magasin, on_delete=models.CASCADE, related_name="stocks")
+    """Représente le stock d’un produit dans un magasin (via IDs, découplé)."""
+    produit_id = models.IntegerField()
+    magasin_id = models.IntegerField()
     quantite = models.IntegerField()
 
     def __str__(self) -> str:
-        nom_produit = getattr(self.produit, "nom", "Produit inconnu")
-        nom_magasin = getattr(self.magasin, "nom", "Magasin inconnu")
-        return f"{self.quantite} de {nom_produit} depuis {nom_magasin}"
+        return f"{self.quantite} unités — Produit {self.produit_id} dans Magasin {self.magasin_id}"

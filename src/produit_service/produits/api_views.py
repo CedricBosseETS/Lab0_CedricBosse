@@ -51,3 +51,14 @@ def rechercher_produits_disponibles(request, magasin_id):
 
     serializer = ProduitSerializer(produits_disponibles, many=True)
     return Response(serializer.data)
+'''
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_produit_serializer(request, pk):
+    try:
+        produit = Produit.objects.get(pk=pk)
+        serializer = ProduitSerializer(produit)
+        return Response(serializer.data, status=200)
+    except Produit.DoesNotExist:
+        return Response({'detail': 'Produit non trouvé'}, status=404)
+'''

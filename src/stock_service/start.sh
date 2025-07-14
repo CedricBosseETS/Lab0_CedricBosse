@@ -13,7 +13,7 @@ echo "✅ Base de données disponible."
 echo "🛠 Appliquer les migrations..."
 python manage.py migrate
 
-echo "📦 Initialiser les données de magasin et utilisateur"
+echo "📦 Initialiser les données de produits"
 python manage.py init_db
 
 echo "🚀 Démarrage du serveur Django"

@@ -9,17 +9,13 @@ from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
-from .views import gestion, home, magasins, caisse, panier, vente
-from .views.panier import afficher_panier_view
+from .views import gestion, home, magasins, caisse, panier, vente #will have to change/split them in services
+from .views.panier import afficher_panier_view #same here
 
 
-from caisse.api_views import MagasinViewSet, ProduitViewSet, StockViewSet, VenteViewSet
+from caisse.api_views import MagasinViewSet
+#, ProduitViewSet, StockViewSet, VenteViewSet
 
-from reporting_service import urls as reporting_urls
-from vente_service import urls as vente_urls
-from stock_service import urls as stock_urls
-from produit_service import urls as produit_urls
-from panier_service import urls as panier_urls
 
 # Documentation Swagger/OpenAPI
 schema_view = get_schema_view(
@@ -35,9 +31,10 @@ schema_view = get_schema_view(
 # Router DRF pour les viewsets
 router = DefaultRouter()
 router.register(r'magasins', MagasinViewSet, basename='magasin')
-router.register(r'produits', ProduitViewSet, basename='produit')
-router.register(r'stocks', StockViewSet, basename='stock')
-router.register(r'ventes', VenteViewSet, basename='vente')
+
+#router.register(r'produits', ProduitViewSet, basename='produit')
+#router.register(r'stocks', StockViewSet, basename='stock')
+#router.register(r'ventes', VenteViewSet, basename='vente')
 
 urlpatterns = [
     # Prometheus metrics (root include ajoutera /metrics/)

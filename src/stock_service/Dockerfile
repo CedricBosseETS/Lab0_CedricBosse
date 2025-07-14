@@ -18,7 +18,11 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copier les sources, les tests et le script wait-for-it
+# Copier les sources
 COPY . .
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:5000"]
+COPY start.sh .
+RUN chmod +x start.sh
+
+#CMD ["python", "manage.py", "runserver", "0.0.0.0:5000"]
+CMD ["bash", "start.sh"]
