@@ -3,7 +3,7 @@ URL configuration for stock_service project.
 """
 from django.contrib import admin
 from django.urls import path
-from stock_service.stocks.api_views import (
+from stocks.api_views import (
     reapprovisionner_api,
     transferer_stock,
     bulk_reapprovisionner_api

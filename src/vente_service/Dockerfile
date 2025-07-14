@@ -21,4 +21,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copier les sources, les tests et le script wait-for-it
 COPY . .
 
+RUN chmod +x start.sh
+
 CMD ["python", "manage.py", "runserver", "0.0.0.0:5000"]

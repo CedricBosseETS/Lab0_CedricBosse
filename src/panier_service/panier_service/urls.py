@@ -3,7 +3,7 @@ URL configuration for panier_service project.
 """
 from django.contrib import admin
 from django.urls import path
-from panier_service.panier.api_views import (
+from .panier.api_views import (
     afficher_panier,
     ajouter_au_panier,
     retirer_du_panier,

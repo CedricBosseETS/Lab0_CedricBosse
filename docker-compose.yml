@@ -18,6 +18,8 @@ services:
       ALLOWED_HOSTS: 'app,nginx,localhost,127.0.0.1'
       # reste disponible pour ton settings.py
       APP_REPLICAS: ${APP_REPLICAS:-2}
+    expose:
+      -"5000"
     depends_on:
       - db
     volumes:
@@ -60,6 +62,8 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       ALLOWED_HOSTS: 'app,nginx,localhost,127.0.0.1'
+    expose:
+      -"5000"
     depends_on:
       - db
     restart: unless-stopped
@@ -75,6 +79,8 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       ALLOWED_HOSTS: 'app,nginx,localhost,127.0.0.1'
+    expose:
+      -"5000"   
     depends_on:
       - db
     restart: unless-stopped
@@ -90,6 +96,8 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       ALLOWED_HOSTS: 'app,nginx,localhost,127.0.0.1'
+    expose:
+      -"5000"    
     depends_on:
       - db
     restart: unless-stopped
@@ -105,6 +113,8 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       ALLOWED_HOSTS: 'app,nginx,localhost,127.0.0.1'
+    expose:
+      -"5000"    
     depends_on:
       - db
     restart: unless-stopped
@@ -120,96 +130,13 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       ALLOWED_HOSTS: 'app,nginx,localhost,127.0.0.1'
+    expose:
+      -"5000"    
     depends_on:
       - db
     restart: unless-stopped
     networks:
       - backend
-
-  # reporting_service:
-  #   build: ./src/reporting_service/
-  #   environment:
-  #     DB_HOST: db
-  #     DB_NAME: ${DB_NAME}
-  #     DB_USER: ${DB_USER}
-  #     DB_PASSWORD: ${DB_PASSWORD}
-  #     ALLOWED_HOSTS: 'reporting_service,nginx,localhost,127.0.0.1'
-  #   depends_on:
-  #     - db
-  #     - redis
-  #   ports:
-  #     - "8001:8001"
-  #   restart: unless-stopped
-  #   networks:
-  #     - backend 
-
-  # produit_service:
-  #   build: ./src/produit_service/
-  #   environment:
-  #     DB_HOST: db
-  #     DB_NAME: ${DB_NAME}
-  #     DB_USER: ${DB_USER}
-  #     DB_PASSWORD: ${DB_PASSWORD}
-  #     ALLOWED_HOSTS: 'produit_service,nginx,localhost,127.0.0.1'
-  #   depends_on:
-  #     - db
-  #     - redis
-  #   ports:
-  #     - "8002:8002"
-  #   restart: unless-stopped
-  #   networks:
-  #     - backend 
-
-  # vente_service:
-  #   build: ./src/vente_service/
-  #   environment:
-  #     DB_HOST: db
-  #     DB_NAME: ${DB_NAME}
-  #     DB_USER: ${DB_USER}
-  #     DB_PASSWORD: ${DB_PASSWORD}
-  #     ALLOWED_HOSTS: 'vente_service,nginx,localhost,127.0.0.1'
-  #   depends_on:
-  #     - db
-  #     - redis
-  #   ports:
-  #     - "8003:8003"
-  #   restart: unless-stopped
-  #   networks:
-  #     - backend 
-
-  # stock_service:
-  #   build: ./src/stock_service/
-  #   environment:
-  #     DB_HOST: db
-  #     DB_NAME: ${DB_NAME}
-  #     DB_USER: ${DB_USER}
-  #     DB_PASSWORD: ${DB_PASSWORD}
-  #     ALLOWED_HOSTS: 'stock_service,nginx,localhost,127.0.0.1'
-  #   depends_on:
-  #     - db
-  #     - redis
-  #   ports:
-  #     - "8004:8004"
-  #   restart: unless-stopped
-  #   networks:
-  #     - backend 
-
-  # panier_service:
-  #   build: ./src/panier_service/
-  #   environment:
-  #     DB_HOST: db
-  #     DB_NAME: ${DB_NAME}
-  #     DB_USER: ${DB_USER}
-  #     DB_PASSWORD: ${DB_PASSWORD}
-  #     ALLOWED_HOSTS: 'panier_service,nginx,localhost,127.0.0.1'
-  #   depends_on:
-  #     - db
-  #     - redis
-  #   ports:
-  #     - "8005:8005"
-  #   restart: unless-stopped
-  #   networks:
-  #     - backend 
 
   prometheus:
     image: prom/prometheus:latest

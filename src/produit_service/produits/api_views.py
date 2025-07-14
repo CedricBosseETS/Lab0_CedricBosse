@@ -23,7 +23,7 @@ from .models import Produit
 from .serializers import (
     ProduitSerializer
 )
-from .services import produit_service
+from produits.services import produit_service
 from stock_service.stocks.services import stock_service
 
 logger = structlog.get_logger()
@@ -51,6 +51,16 @@ def rechercher_produits_disponibles(request, magasin_id):
 
     serializer = ProduitSerializer(produits_disponibles, many=True)
     return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_produit(request, pk):
+    try:
+        produit = Produit.objects.get(pk=pk)
+        serializer = ProduitSerializer(produit)
+        return Response(serializer.data)
+    except Produit.DoesNotExist:
+        return Response(status=404)
 '''
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

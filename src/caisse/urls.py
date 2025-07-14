@@ -1,6 +1,5 @@
 """
-Définit toutes les routes de l'application 'caisse' :
-accueil, gestion des magasins, caisse, panier, ventes et administration.
+Définit toutes les routes de l'application 'caisse' pour l'acceuil et la documentation
 """
 
 from django.urls import path, include, re_path
@@ -11,11 +10,10 @@ from drf_yasg import openapi
 
 from .views import gestion, home, magasins, caisse, panier, vente #will have to change/split them in services
 from .views.panier import afficher_panier_view #same here
+from caisse.api_views import get_magasin_by_id_api, get_centre_logistique_api
 
 
 from caisse.api_views import MagasinViewSet
-#, ProduitViewSet, StockViewSet, VenteViewSet
-
 
 # Documentation Swagger/OpenAPI
 schema_view = get_schema_view(
@@ -32,10 +30,6 @@ schema_view = get_schema_view(
 router = DefaultRouter()
 router.register(r'magasins', MagasinViewSet, basename='magasin')
 
-#router.register(r'produits', ProduitViewSet, basename='produit')
-#router.register(r'stocks', StockViewSet, basename='stock')
-#router.register(r'ventes', VenteViewSet, basename='vente')
-
 urlpatterns = [
     # Prometheus metrics (root include ajoutera /metrics/)
     path('', include('django_prometheus.urls')),
@@ -48,33 +42,8 @@ urlpatterns = [
 
     # --- API REST ---
     path('api/', include(router.urls)),
-    #path('api/stock/', include(stock_urls)),
-    #path('api/produits/', include(produit_urls)),
-    #path('api/vente/', include(vente_urls)),
-    #path('api/panier/', include(panier_urls)),
-    #path('api/maison_mere/', include(reporting_urls)),
-    
-    #path('api/magasins/<int:magasin_id>/reapprovisionner/', reapprovisionner_api, name='reapprovisionner_api'),
-    #path("api/magasins/<int:magasin_id>/ventes/", ventes_par_magasin_api), moved to vente_service
-
-    #path('api/magasins/<int:magasin_id>/produits_disponibles/', rechercher_produits_disponibles, name='produits_disponibles'), dans produit_service
-    #path('api/stock/transferer/', transferer_stock, name='transferer_stock'),
-    #path("api/magasins/<int:magasin_id>/panier/", afficher_panier),
-    #path("api/magasins/<int:magasin_id>/panier/ajouter/", ajouter_au_panier),
-    #path("api/magasins/<int:magasin_id>/panier/retirer/", retirer_du_panier),
-    #path("api/magasins/<int:magasin_id>/panier/vider/", vider_panier),
-    # les urls ont changer donc va falloir ajouter /vente devant les routes en utilisation
-
-    #path('api/magasins/<int:magasin_id>/panier/finaliser/', finaliser_vente, name='finaliser_vente'),#adjust url to match anuler_vente moved to vente_service
-    #path('api/panier/<int:magasin_id>/annuler/<int:vente_id>/', annuler_vente, name='annuler_vente'), moved to vente_service
-    #path('api/rapports/ventes/', ventes_par_magasin_api, name='ventes_par_magasin'), moved to vente_service
-
-    #path('api/maison_mere/<int:magasin_id>/rapport_ventes/', rapport_ventes_api, name='rapport_ventes_api'), déplacé dans reporting_service
-    #path('api/maison_mere/<int:magasin_id>/tableau_de_bord/', tableau_de_bord_api, name='tableau_de_bord'), déplacé dans reporting_service
-    #path('api/maison_mere/<int:magasin_id>/donnees_approvisionnement/', donnees_approvisionnement, name='donnees_approvisionnement'), déplacé dans reporting_service
-    #path('api/centre/<int:magasin_id>/bulk_reapprovisionner/', bulk_reapprovisionner_api), 
-    #path('api/maison_mere/<int:magasin_id>/approvisionner/', approvisionner, name='approvisionner'), doit être réparer
-    #path('api/maison_mere/<int:centre_id>/approvisionner/', approvisionner, name='approvisionner'),#Je pense n'est pas utilisé
+    path('api/magasins/<int:id>/', get_magasin_by_id),
+    path('api/magasins/centre_logistique/', get_centre_logistique),
 
     # --- Vues classiques (UI) ---
     path('', home.home_view, name='home'),

@@ -1,6 +1,6 @@
 """Commande Django pour initialiser la base de données avec les magasins, produits et stock de base."""
 from django.core.management.base import BaseCommand
-from produit_service.produits.models import Produit
+from produits.models import Produit
 
 
 class Command(BaseCommand):

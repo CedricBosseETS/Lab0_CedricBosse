@@ -21,7 +21,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copier les sources
 COPY . .
 
-COPY start.sh .
 RUN chmod +x start.sh
 
 #CMD ["python", "manage.py", "runserver", "0.0.0.0:5000"]

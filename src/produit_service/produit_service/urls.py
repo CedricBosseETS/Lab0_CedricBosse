@@ -10,5 +10,5 @@ from produit_service.produits.api_views import (
 
 urlpatterns = [
     path('api/produits/magasins/<int:magasin_id>/produits_disponibles/', rechercher_produits_disponibles, name='produits_disponibles')
-    path('api/produits/<int:pk>/', get_produit_serializer, name='get_produit'),
+    path("api/produits/<int:pk>/", get_produit),
 ]

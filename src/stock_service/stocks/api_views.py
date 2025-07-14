@@ -1,5 +1,6 @@
 import json
 import structlog
+import requests
 from warnings import filters as warnings_filters
 from django.http import JsonResponse
 from django.db.models import Sum, F, ExpressionWrapper, FloatField, Q
@@ -19,20 +20,25 @@ from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 
 from .models import Stock
-from produit_service.models import Produit
 from .serializers import (
     StockSerializer
 )
-from caisse.services import magasin_service
-from .services import stock_service
+from stocks.services import stock_service
 
 logger = structlog.get_logger()
 
 @csrf_exempt
 @api_view(['POST'])
 def reapprovisionner_api(request, magasin_id):
-    magasin = magasin_service.get_magasin_by_id(magasin_id)
-    centre_logistique = magasin_service.get_centre_logistique()
+    resp_magasin = requests.get(f"http://nginx/api/magasins/{magasin_id}/")
+    if resp_magasin.status_code != 200:
+        return Response({"error": "Magasin introuvable"}, status=404)
+    magasin = resp_magasin.json()
+
+    resp_centre = requests.get("http://nginx/api/magasins/centre_logistique/")
+    if resp_centre.status_code != 200:
+        return Response({"error": "Centre logistique introuvable"}, status=404)
+    centre_logistique = resp_centre.json()
 
     produit_id = request.data.get('produit_id')
     quantite = request.data.get('quantite')
@@ -42,9 +48,13 @@ def reapprovisionner_api(request, magasin_id):
         return Response({"error": "Produit et quantité sont requis."}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        produit = Produit.objects.get(id=produit_id)
-    except Produit.DoesNotExist:
-        return Response({"error": "Produit invalide."}, status=status.HTTP_400_BAD_REQUEST)
+        resp = requests.get(f"http://nginx/api/produits/{produit_id}/")
+        if resp.status_code == 404:
+            return Response({"error": "Produit invalide."}, status=status.HTTP_400_BAD_REQUEST)
+        resp.raise_for_status()
+        produit_data = resp.json()
+    except requests.exceptions.RequestException as e:
+        return Response({"error": "Erreur lors de la vérification du produit."}, status=status.HTTP_502_BAD_GATEWAY)
 
     try:
         quantite = int(quantite)
@@ -54,7 +64,7 @@ def reapprovisionner_api(request, magasin_id):
         return Response({"error": "La quantité doit être un entier."}, status=status.HTTP_400_BAD_REQUEST)
 
     # Vérifier que le produit existe dans le stock du centre logistique avec assez de stock
-    stock_centre = stock_service.get_stock_entry(centre_logistique.id, produit_id)
+    stock_centre = stock_service.get_stock_entry(centre_logistique["id"],, produit_id)
     if not stock_centre or stock_centre.quantite < quantite:
         return Response({"error": "Stock insuffisant au centre logistique."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -64,8 +74,8 @@ def reapprovisionner_api(request, magasin_id):
             success, msg = stock_service.transferer_stock(
                 produit_id,
                 quantite,
-                centre_logistique.id,
-                magasin.id
+                centre_logistique["id"],
+                magasin["id"]
             )
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -77,10 +87,16 @@ def reapprovisionner_api(request, magasin_id):
 @permission_classes([IsAuthenticated])
 def transferer_stock(request):
     logger.info("transferer_stock_start", user=request.user.username, data=request.data)
-    centre = magasin_service.get_centre_logistique()
+
+    resp_centre = requests.get("http://nginx/api/magasins/centre_logistique/")
+    if resp_centre.status_code != 200:
+        return Response({"error": "Centre logistique introuvable"}, status=404)
+    centre = resp_centre.json()
+
     dest_id = request.data.get('magasin_id')
     produits = request.data.get('produits', [])
     errors, messages = [], []
+
     for p in produits:
         try:
             pid = int(p.get('produit_id'))
@@ -88,7 +104,7 @@ def transferer_stock(request):
             success, msg = stock_service.transferer_stock(
                 produit_id=pid,
                 quantite=qty,
-                source_magasin_id=centre.id,
+                source_magasin_id=centre["id"],
                 destination_magasin_id=int(dest_id)
             )
             messages.append(msg)
@@ -96,16 +112,26 @@ def transferer_stock(request):
             errors.append(str(ve))
         except Exception as e:
             errors.append(str(e))
+
     status_code = status.HTTP_200_OK if not errors else status.HTTP_400_BAD_REQUEST
     payload = {"details": messages} if not errors else {"error": errors}
     logger.info("transferer_stock_end", status_code=status_code, errors=errors)
+
     return Response(payload, status=status_code)
 
 @csrf_exempt
 @api_view(['POST'])
 def bulk_reapprovisionner_api(request, magasin_id):
-    magasin = magasin_service.get_magasin_by_id(magasin_id)
-    centre_logistique = magasin_service.get_centre_logistique()
+    # Remplacement de l’appel direct par appel API
+    resp_magasin = requests.get(f"http://nginx/api/magasins/{magasin_id}/")
+    if resp_magasin.status_code != 200:
+        return Response({"error": "Magasin introuvable"}, status=404)
+    magasin = resp_magasin.json()
+
+    resp_centre = requests.get("http://nginx/api/magasins/centre_logistique/")
+    if resp_centre.status_code != 200:
+        return Response({"error": "Centre logistique introuvable"}, status=404)
+    centre_logistique = resp_centre.json()
 
     items = request.data.get('items')
     if not items or not isinstance(items, list):
@@ -125,7 +151,12 @@ def bulk_reapprovisionner_api(request, magasin_id):
                     continue
 
                 try:
-                    produit = Produit.objects.get(id=produit_id)
+                    response = requests.get(f"http://nginx/api/produits/{produit_id}/")
+                    if response.status_code != 200:
+                        raise ValueError("Produit invalide.")
+
+                    produit = response.json()
+
                     quantite = int(quantite)
                     if quantite <= 0:
                         raise ValueError("Quantité non positive.")
@@ -133,16 +164,16 @@ def bulk_reapprovisionner_api(request, magasin_id):
                     erreurs.append(f"Produit {produit_id} : {str(e)}")
                     continue
 
-                stock_centre = stock_service.get_stock_entry(centre_logistique.id, produit_id)
+                stock_centre = stock_service.get_stock_entry(centre_logistique["id"], produit_id)
                 if not stock_centre or stock_centre.quantite < quantite:
-                    erreurs.append(f"Stock insuffisant pour le produit {produit.nom}")
+                    erreurs.append(f"Stock insuffisant pour le produit {produit['nom']}")
                     continue
 
                 success, msg = stock_service.transferer_stock(
                     produit_id,
                     quantite,
-                    centre_logistique.id,
-                    magasin.id
+                    centre_logistique["id"],
+                    magasin["id"]
                 )
                 messages.append(msg)
     except Exception as e:

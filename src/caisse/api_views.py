@@ -8,9 +8,6 @@ from django.contrib.auth.decorators import login_required
 from rest_framework import status, viewsets, filters
 
 from caisse.models import Magasin
-from produit_service.produits.models import Produit
-from stock_service.stocks.models import Stock
-from vente_service.ventes.models import Vente, VenteProduit
 
 from caisse.serializers import MagasinSerializer
 
@@ -28,7 +25,6 @@ from django.core.cache import cache
 
 logger = structlog.get_logger()
 
-
 class MagasinViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Magasin.objects.filter(type='magasin')
     serializer_class = MagasinSerializer
@@ -38,6 +34,28 @@ class MagasinViewSet(viewsets.ReadOnlyModelViewSet):
         resp = super().list(request, *args, **kwargs)
         logger.info("magasin_list_end", count=len(resp.data), status_code=resp.status_code)
         return resp
+
+@api_view(['GET'])
+def get_magasin_by_id(request, id):
+    """Retourne un magasin par ID."""
+    logger.info("get_magasin_by_id_start", magasin_id=id, user=str(request.user))
+    magasin = get_object_or_404(Magasin, id=id)
+    serializer = MagasinSerializer(magasin)
+    logger.info("get_magasin_by_id_success", magasin_id=id)
+    return Response(serializer.data, status=200)
+
+@api_view(['GET'])
+def get_centre_logistique(request):
+    """Retourne le centre logistique (type='logistique')."""
+    logger.info("get_centre_logistique_start", user=str(request.user))
+    try:
+        centre = Magasin.objects.get(type='logistique')
+        serializer = MagasinSerializer(centre)
+        logger.info("get_centre_logistique_success", centre_id=centre.id)
+        return Response(serializer.data, status=200)
+    except Magasin.DoesNotExist:
+        logger.warning("get_centre_logistique_not_found")
+        return Response({"error": "Centre logistique non trouvé"}, status=404)
 
 '''
 class ProduitViewSet(viewsets.ModelViewSet):

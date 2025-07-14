@@ -1,6 +1,6 @@
 """Commande Django pour initialiser la base de données avec les magasins, produits et stock de base."""
 from django.core.management.base import BaseCommand
-from stock_service.models import Stock
+from stocks.models import Stock
 import requests
 
 

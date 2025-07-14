@@ -11,11 +11,7 @@ done
 echo "✅ Base de données disponible."
 
 echo "🛠 Appliquer les migrations..."
-python manage.py makemigrations
 python manage.py migrate
-
-echo "📦 Initialiser les données de magasin et utilisateur"
-python manage.py init_db
 
 echo "🚀 Démarrage du serveur Django"
 python manage.py runserver 0.0.0.0:5000

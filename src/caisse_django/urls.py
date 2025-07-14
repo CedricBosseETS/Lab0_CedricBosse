@@ -10,4 +10,6 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('caisse.urls')),  
+    #path('api/magasins/<int:id>/', get_magasin_by_id),
+    #path('api/magasins/centre_logistique/', get_centre_logistique),
 ]
