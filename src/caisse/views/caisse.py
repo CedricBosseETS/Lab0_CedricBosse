@@ -1,7 +1,10 @@
 """Vues liées à la caisse : page caisse, recherche, réapprovisionnement, et affichage du panier."""
-
+from rest_framework.response import Response
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+
+from django.http import HttpResponseNotFound, HttpResponseServerError
+import requests
 
 from caisse.services import magasin_service
 from stock_service.stocks.services import stock_service
@@ -12,13 +15,43 @@ from produit_service.produits.models import Produit
 
 def page_caisse(request, magasin_id):
     """Affiche la page HTML de la caisse avec les produits disponibles du centre logistique pour réapprovisionnement."""
-    magasin = magasin_service.get_magasin_by_id(magasin_id)
-    centre_logistique = magasin_service.get_centre_logistique()
-    produits_centre = stock_service.get_produits_disponibles(centre_logistique.id)
-    stock_centre, _ = stock_service.get_stock_indexed_by_produit(
-        centre_logistique.id, magasin.id
-    )
 
+    headers = {}
+    if request.user.is_authenticated and request.session.session_key:
+        session_cookie = request.COOKIES.get('sessionid')
+        if session_cookie:
+            headers['Cookie'] = f'sessionid={session_cookie}'
+
+    # 1. Récupération du magasin
+    resp_magasin = requests.get(f"http://localhost:5000/api/magasins/{magasin_id}/", headers=headers)
+    if resp_magasin.status_code != 200:
+        return HttpResponseNotFound("Magasin introuvable")
+    magasin = resp_magasin.json()
+
+    # 2. Récupération du centre logistique
+    resp_centre = requests.get("http://localhost:5000/api/magasins/centre_logistique/", headers=headers)
+    if resp_centre.status_code != 200:
+        return HttpResponseNotFound("Centre logistique introuvable")
+    centre_logistique = resp_centre.json()
+
+    # 3. Produits disponibles au centre logistique
+    try:
+        resp_produits = requests.get(f"http://localhost:5000/api/stock/produits_disponibles/{centre_logistique['id']}/", headers=headers)
+        resp_produits.raise_for_status()
+        produits_centre = resp_produits.json()
+    except requests.exceptions.RequestException as e:
+        return HttpResponseServerError(f"Erreur lors de la récupération des produits du centre : {str(e)}")
+
+    # 4. Stock indexé
+    try:
+        resp_stock = requests.get(f"http://localhost:5000/api/stock/stock_indexe/{centre_logistique['id']}/{magasin['id']}/", headers=headers)
+        resp_stock.raise_for_status()
+        stock_data = resp_stock.json()
+        stock_centre = stock_data.get("stock_centre", {})
+    except requests.exceptions.RequestException as e:
+        return HttpResponseServerError(f"Erreur lors de la récupération du stock : {str(e)}")
+
+    # 5. Affichage de la page caisse
     return render(request, "caisse.html", {
         "magasin_id": magasin_id,
         "magasin": magasin,

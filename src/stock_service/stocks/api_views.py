@@ -64,7 +64,7 @@ def reapprovisionner_api(request, magasin_id):
         return Response({"error": "La quantité doit être un entier."}, status=status.HTTP_400_BAD_REQUEST)
 
     # Vérifier que le produit existe dans le stock du centre logistique avec assez de stock
-    stock_centre = stock_service.get_stock_entry(centre_logistique["id"],, produit_id)
+    stock_centre = stock_service.get_stock_entry(centre_logistique["id"], produit_id)
     if not stock_centre or stock_centre.quantite < quantite:
         return Response({"error": "Stock insuffisant au centre logistique."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -184,3 +184,39 @@ def bulk_reapprovisionner_api(request, magasin_id):
         response["warnings"] = erreurs
 
     return Response(response, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+def produits_disponibles_api(request, magasin_id):
+    """
+    Retourne tous les produits disponibles (>0 en stock) pour un magasin donné.
+    """
+    try:
+        produits = stock_service.get_produits_disponibles(magasin_id)
+        produits_data = [
+            {
+                "id": p.id,
+                "nom": p.nom,
+                "prix": p.prix,
+                "description": p.description,
+            }
+            for p in produits
+        ]
+        return Response(produits_data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+def stock_indexe_api(request, centre_id, magasin_id):
+    """
+    Retourne deux dictionnaires de stock indexés par produit_id :
+    - stock du centre logistique
+    - stock local du magasin
+    """
+    try:
+        stock_centre, stock_local = stock_service.get_stock_indexed_by_produit(centre_id, magasin_id)
+        return Response({
+            'stock_centre': stock_centre,
+            'stock_local': stock_local
+        }, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

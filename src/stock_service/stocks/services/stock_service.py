@@ -2,7 +2,7 @@
 from django.db import transaction
 from django.db.models import Sum
 from stock_service.stocks.models import Stock
-from produit_service.produits.models import Produit
+#from produit_service.produits.models import Produit #fix
 
 def get_stock_total_par_magasin():
     """
@@ -70,3 +70,5 @@ def transferer_stock(produit_id, quantite, source_magasin_id, destination_magasi
     dest_stock.save()
 
     return True, "Transfert effectué avec succès."
+
+    

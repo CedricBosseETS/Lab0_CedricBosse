@@ -10,7 +10,7 @@ from drf_yasg import openapi
 
 from .views import gestion, home, magasins, caisse, panier, vente #will have to change/split them in services
 from .views.panier import afficher_panier_view #same here
-from caisse.api_views import get_magasin_by_id_api, get_centre_logistique_api
+from caisse.api_views import get_magasin_by_id, get_centre_logistique
 
 
 from caisse.api_views import MagasinViewSet

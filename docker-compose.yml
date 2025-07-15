@@ -16,10 +16,9 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       ALLOWED_HOSTS: 'app,nginx,localhost,127.0.0.1'
-      # reste disponible pour ton settings.py
       APP_REPLICAS: ${APP_REPLICAS:-2}
     expose:
-      -"5000"
+      - "5000"
     depends_on:
       - db
     volumes:
@@ -63,7 +62,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       ALLOWED_HOSTS: 'app,nginx,localhost,127.0.0.1'
     expose:
-      -"5000"
+      - "5000"
     depends_on:
       - db
     restart: unless-stopped
@@ -80,7 +79,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       ALLOWED_HOSTS: 'app,nginx,localhost,127.0.0.1'
     expose:
-      -"5000"   
+      - "5000"   
     depends_on:
       - db
     restart: unless-stopped
@@ -97,7 +96,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       ALLOWED_HOSTS: 'app,nginx,localhost,127.0.0.1'
     expose:
-      -"5000"    
+      - "5000"    
     depends_on:
       - db
     restart: unless-stopped
@@ -114,7 +113,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       ALLOWED_HOSTS: 'app,nginx,localhost,127.0.0.1'
     expose:
-      -"5000"    
+      - "5000"    
     depends_on:
       - db
     restart: unless-stopped
@@ -131,7 +130,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       ALLOWED_HOSTS: 'app,nginx,localhost,127.0.0.1'
     expose:
-      -"5000"    
+      - "5000"    
     depends_on:
       - db
     restart: unless-stopped
