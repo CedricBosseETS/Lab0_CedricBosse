@@ -1,7 +1,7 @@
 # Application de magasin
 
 ## Description
-
+NOTE : Du aux changements d'architecture enc ours, à pars la page d'acceuil principale les autres pages ne sont pas disponibles.
 Il s'agit d'une application **web** de caisse enregistreuse développée avec **Django** et une base de données **MySQL**.  
 L'application supporte plusieurs magasins (multi-sites) ainsi que des entités administratives comme la maison mère et le centre logistique.  
 Plusieurs caisses peuvent être utilisées simultanément avec une gestion cohérente des stocks et des ventes.  
@@ -30,6 +30,7 @@ sudo apt install docker docker-compose
 4. docker compose up
 
 ## Instructions de lancement des tests :
+NOTE : lLes tests ne sont présentement pas fonctionnels.
 1. docker compose build --no-cache
 2. docker compose up -d 
 3. docker compose exec app python manage.py init_test_db
@@ -42,7 +43,7 @@ Le panier est géré en session utilisateur, et la finalisation met à jour les 
 L’administration permet la gestion des entités (maison mère, centres logistiques), la modification des produits, le suivi des ventes et la gestion des approvisionnements entre magasins.
 
 ##  Collection de requêtes de l'API
-
+NOTE : Cette partie est aussi potentiellement non disponible à cause des changements en cours. Merci de votre compréhension.
 une fois le service lancé, voir les deux liens suivants :
 http://localhost:5000/swagger/
 http://localhost:5000/redoc/

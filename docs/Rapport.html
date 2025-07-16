@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Rapport.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="rapport-c%C3%A9dric-boss%C3%A9---application-caisse-multi-utilisateurs">Rapport Cédric Bossé - Application Caisse Multi-utilisateurs</h1>
+<hr>
+<h2 id="r%C3%A9positoire-github--httpsgithubcomcedricbosseetslab0cedricbossereleasestaglab5remise">Répositoire github : https://github.com/CedricBosseETS/Lab0_CedricBosse/releases/tag/Lab5_remise</h2>
+<h2 id="1-introduction-et-objectifs">1. Introduction et objectifs</h2>
+<p>Dans le cadre de l’évolution de l’application de caisse, une refonte de l’architecture a été amorcée afin de migrer vers une approche orientée microservices. Chaque domaine fonctionnel (produits, stocks, ventes, etc.) a été isolé dans un conteneur dédié, avec ses propres endpoints API et logique métier. Pour renforcer la performance et la résilience, un système de cache Redis a été ajouté, ainsi qu’un observateur de métriques via Grafana et Prometheus. Un API Gateway a été mis en place pour centraliser les accès, accompagné d’un load balancer pour répartir la charge. Ces changements visent à améliorer la scalabilité, la maintenabilité et la supervision du système.
+Il est important que je mentione une chose par contre. Du aux contraintes de temps. Le code n'est pas totalement représentatif de ce qui est écrit dans ce rapport. C'est à dire qu'il constitue mon plan actuel et que c'est majoritairement en cours. En l'état actuel, j'ai mis l'API Gateway et j'ai séparer en microservices mais l'application n'est pas fonctionnelle car je n'ai pas finis d'ajuster les API et de défaire le fort couplage qui était encré dans mon code.</p>
+<hr>
+<h2 id="2-contraintes">2. Contraintes</h2>
+<ul>
+<li>Chaque service doit être autonome, avec une dépendance minimale vis-à-vis des autres. Cela implique de ne plus accéder directement aux modèles ou fonctions internes d’un autre service, et d’utiliser des appels API pour toute interaction.</li>
+<li>Les données mises en cache doivent rester synchronisées avec la base de données. Il faut donc définir des règles d’invalidation précises.</li>
+<li>Tous les services doivent exposer des métriques au format Prometheus, ce qui nécessite un middleware ou une configuration spécifique dans chaque conteneur.</li>
+<li>L’ensemble des routes doit être connu et bien définies dans la configuration du proxy inverse. Cela limite la flexibilité en cas de routes dynamiques.  Il faut aussi gérer les en-têtes (authentification, CORS, etc.) de manière centralisée.</li>
+</ul>
+<hr>
+<h2 id="3-contexte">3. Contexte</h2>
+<p>L’application initiale était monolithique, ce qui limitait sa maintenabilité, sa scalabilité et sa résilience. Toute la logique métier (ventes, stocks, produits, etc.) était centralisée dans un seul service Django avec une base de données unique. Cela compliquait la collaboration, augmentait le couplage entre modules et rendait difficile la montée en charge.</p>
+<ul>
+<li>Découper l’application en microservices</li>
+<li>Ajouter un cache Redis</li>
+<li>Mettre en place une observabilité avec Grafana et Prometheus</li>
+<li>Intégrer un Load Balancer (via Nginx)</li>
+<li>Utiliser une API Gateway (Nginx aussi)</li>
+</ul>
+<hr>
+<h2 id="4-strat%C3%A9gie-de-solution">4. Stratégie de solution</h2>
+<p>Pour atteindre les objectifs visés, la première stratégie adoptée a été de refactorer l’architecture en services indépendants. Chaque domaine fonctionnel (produits, stocks, ventes, etc.) a été isolé dans un microservice distinct, chacun géré par son propre conteneur Docker. Ce découpage a permis de réduire le couplage entre les modules et d’implémenter plus facilement des règles métier spécifiques à chaque domaine.</p>
+<p>Ensuite, une API Gateway basée sur Nginx a été configurée pour centraliser les accès aux différents services. Elle joue le rôle d’un point d’entrée unique, simplifiant la gestion des routes internes, la configuration des CORS, ainsi que l’ajout de futures règles d’authentification et de journalisation. Grâce à cette couche, tous les appels inter-services passent désormais par des APIs REST exposées de manière uniforme.</p>
+<p>Parallèlement, un mécanisme de cache Redis a été introduit pour optimiser l’accès aux données fréquemment consultées, notamment les stocks. Ce cache permet de diminuer la latence perçue par les utilisateurs et d’alléger la pression sur la base de données. Des règles simples de mise en cache et d’invalidation ont été mises en place pour conserver la cohérence des données.</p>
+<p>Enfin, un système d’observabilité avec Grafana et Prometheus a été déployé pour suivre les métriques essentielles (Golden Signals), comme les taux d’erreur, la latence des endpoints et le débit de requêtes. En parallèle, un load balancer a été intégré via la configuration de Nginx, permettant de tester la répartition de charge entre plusieurs réplicas d’un même service. Des scénarios de montée en charge et de panne ont été simulés pour valider la résilience globale de l’architecture.</p>
+<hr>
+<h2 id="5-vue-des-blocs-de-construction">5. Vue des blocs de construction</h2>
+<p>L’application a été structurée selon une architecture modulaire orientée services. Le système principal est divisé en plusieurs blocs fonctionnels déployés sous forme de microservices : un service de gestion des produits, un service de gestion des stocks, un service de ventes, un service de reporting, un service de panier et un service de caisse/magasin.
+Ces blocs sont exposés via des APIs REST et communiquent exclusivement entre eux à travers une API Gateway. Le frontend (HTML + JS) est relié au backend via cette passerelle, garantissant une séparation claire entre l’interface utilisateur et les services métier. Un cache Redis complète l’architecture pour améliorer la performance, tandis que Grafana et Prometheus forment le bloc d’observabilité. Chaque bloc est encapsulé dans un conteneur Docker et déployé indépendamment via Docker Compose.</p>
+<p>Vue de développement, diagramme des composantes :</p>
+<pre class="hljs"><code><div>@startuml
+!define RECTANGLE class
+
+title Diagramme des composantes – Architecture Microservices POS
+
+package &quot;Client Web&quot; {
+  [Frontend (HTML/JS)]
+}
+
+component &quot;Nginx\n(API Gateway)&quot; as NGINX
+
+database &quot;MySQL&quot; as DB
+database &quot;Redis (cache)&quot; as REDIS
+
+package &quot;Service Caisse&quot; {
+  [caisse.api_views]
+  [caisse.services]
+  [caisse.models]
+}
+
+package &quot;Produit Service&quot; {
+  [produit.api_views]
+  [produit.services]
+  [produit.models]
+}
+
+package &quot;Stock Service&quot; {
+  [stock.api_views]
+  [stock.services]
+  [stock.models]
+}
+
+package &quot;Vente Service&quot; {
+  [vente.api_views]
+  [vente.services]
+  [vente.models]
+}
+
+package &quot;Panier Service&quot; {
+  [panier.api_views]
+  [panier.services]
+  [panier.models]
+}
+
+package &quot;Reporting Service&quot; {
+  [reporting.api_views]
+  [reporting.services]
+  [reporting.models]
+}
+
+' Relations frontales
+[Frontend (HTML/JS)] --&gt; NGINX
+
+' Gateway redirige vers APIs
+NGINX --&gt; [caisse.api_views]
+NGINX --&gt; [produit.api_views]
+NGINX --&gt; [stock.api_views]
+NGINX --&gt; [vente.api_views]
+NGINX --&gt; [panier.api_views]
+NGINX --&gt; [reporting.api_views]
+
+' Couches internes par service
+[caisse.api_views] --&gt; [caisse.services]
+[caisse.services] --&gt; [caisse.models]
+[produit.api_views] --&gt; [produit.services]
+[produit.services] --&gt; [produit.models]
+[stock.api_views] --&gt; [stock.services]
+[stock.services] --&gt; [stock.models]
+[vente.api_views] --&gt; [vente.services]
+[vente.services] --&gt; [vente.models]
+[panier.api_views] --&gt; [panier.services]
+[panier.services] --&gt; [panier.models]
+[reporting.api_views] --&gt; [reporting.services]
+[reporting.services] --&gt; [reporting.models]
+
+' Accès à la DB partagée
+[caisse.models] --&gt; DB
+[produit.models] --&gt; DB
+[stock.models] --&gt; DB
+[vente.models] --&gt; DB
+[panier.models] --&gt; DB
+[reporting.models] --&gt; DB
+
+' Cache Redis
+[stock.services] --&gt; REDIS
+[produit.services] --&gt; REDIS
+
+@enduml
+</div></code></pre>
+<hr>
+<p>Vue logique et diagramme de classe :</p>
+<pre class="hljs"><code><div>@startuml
+title Diagramme de classes - Vue Microservices
+
+package &quot;produit_service&quot; {
+    class Produit {
+        +id: int
+        +nom: str
+        +prix: float
+        +description: str
+    }
+}
+
+package &quot;stock_service&quot; {
+    class Stock {
+        +id: int
+        +produit_id: int
+        +magasin_id: int
+        +quantite: int
+    }
+}
+
+package &quot;caisse (magasin)&quot; {
+    class Magasin {
+        +id: int
+        +nom: str
+        +quartier: str
+        +type: str
+    }
+}
+
+package &quot;vente_service&quot; {
+    class Vente {
+        +id: int
+        +magasin_id: int
+        +date_heure: datetime
+        +total: float
+    }
+
+    class VenteProduit {
+        +id: int
+        +vente_id: int
+        +produit_id: int
+        +quantite: int
+        +prix_unitaire: float
+    }
+}
+
+' Relations externes (par IDs simulés)
+Stock --&gt; Produit : via produit_id
+Stock --&gt; Magasin : via magasin_id
+Vente --&gt; Magasin : via magasin_id
+VenteProduit --&gt; Vente : via vente_id
+VenteProduit --&gt; Produit : via produit_id
+
+@enduml
+
+</div></code></pre>
+<hr>
+<h2 id="6-vue-dex%C3%A9cution-runtime">6. Vue d’exécution (runtime)</h2>
+<p>Scénarios clés :</p>
+<ul>
+<li>Ouverture d’une caisse : déclenchée par la sélection d’un magasin via l’interface, les données du magasin sont récupérées dynamiquement via l’API Gateway.</li>
+<li>Ajout et retrait d’articles au panier : gérés par le service panier_service, avec un panier propre à chaque session utilisateur, stocké via request.session dans Django.</li>
+<li>Validation d’une vente : déléguée au vente_service via un appel API. Ce service vérifie les stocks (en appelant stock_service), enregistre la vente, puis déclenche la mise à jour des quantités disponibles.</li>
+<li>Gestion des sessions utilisateur : Django conserve l’état du panier via le middleware de sessions HTTP. Cela permet de garantir un panier isolé par utilisateur, même à travers plusieurs appels API.</li>
+</ul>
+<p>Vue des processus : le diagramme suivant illustre un scénario d’exécution typique côté administrateur pour la modification de produits via l’interface de la maison mère.</p>
+<pre class="hljs"><code><div>@startuml
+title Scénario - Modification de produits via la maison mère (architecture microservices)
+
+start
+
+:Admin visite la page de gestion de la maison mère;
+:Admin sélectionne &quot;Modifier les produits&quot;;
+
+:Vue `modifier_produits_depuis_maison_mere`;
+:Effectue un appel HTTP GET à `/api/produits/` via API Gateway;
+:API Gateway route vers `produit_service`;
+:produit_service.get_tous_les_produits`;
+
+:Affiche la page `modifier_produits.html` avec les produits;
+
+partition &quot;Par produit&quot; {
+    :Admin modifie les champs (nom, prix, description);
+    :Soumet le formulaire (POST);
+}
+
+:Vue `modifier_produit_depuis_maison_mere`;
+:Extrait les champs `nom`, `prix`, `description`;
+
+:Effectue un appel HTTP PUT à `/api/produits/&lt;id&gt;/` via API Gateway;
+:API Gateway route vers `produit_service`;
+:produit_service.mettre_a_jour_produit`;
+
+:produit_service` :
+  - Récupère le produit par ID;
+  - Modifie les champs;
+  - Sauvegarde en base;
+
+:Retourne statut 200 OK;
+
+:Redirige vers la page précédente;
+
+stop
+@enduml
+
+</div></code></pre>
+<p>Vue des scénarios : les cas d’utilisation suivants décrivent les interactions principales d’un utilisateur avec l’interface de la caisse.</p>
+<pre class="hljs"><code><div>@startuml
+actor &quot;Utilisateur&quot; as User
+
+rectangle &quot;Application Caisse&quot; {
+  usecase &quot;Rechercher produit&quot; as UC1
+  usecase &quot;Ajouter produit au panier&quot; as UC2
+  usecase &quot;Afficher panier&quot; as UC3
+  usecase &quot;Finaliser la vente&quot; as UC4
+}
+
+User --&gt; UC1 : Recherche produit par nom ou ID
+User --&gt; UC2 : Sélectionne produit et quantité
+User --&gt; UC3 : Consulte le contenu du panier
+User --&gt; UC4 : Valide la vente
+
+UC2 --&gt; UC3 : Met à jour le panier
+UC3 --&gt; UC4 : Le panier est la base de la vente
+
+@enduml
+</div></code></pre>
+<hr>
+<h2 id="7-vue-de-d%C3%A9ploiement">7. Vue de déploiement</h2>
+<p>Le déploiement de l’application repose sur Docker Compose, dans le cadre d'une refonte progressive du projet initialement monolithique. Chaque service métier (produits, stocks, ventes, etc.) est encapsulé dans un conteneur Docker distinct, reflétant l’architecture microservices en construction.
+Actuellement, la stack comprend :</p>
+<ul>
+<li>Plusieurs conteneurs Python (Django REST) pour les services métier</li>
+<li>Un conteneur MySQL partagé temporairement entre les services (étape transitoire avant une éventuelle séparation par base) ;</li>
+<li>Un conteneur Redis pour la mise en cache ;</li>
+<li>Un conteneur Nginx jouant le rôle à la fois d’API Gateway et de reverse proxy ;</li>
+<li>Un conteneur Prometheus et un conteneur Grafana pour la supervision.</li>
+<li></li>
+</ul>
+<p>Le déploiement est centralisé dans un fichier docker-compose.yml qui décrit la configuration réseau, les dépendances inter-services, les volumes de persistance (notamment pour MySQL et Grafana), ainsi que les points d’entrée des services. Le cache Redis et la base MySQL utilisent des volumes Docker pour garantir la persistance des données.</p>
+<p>Vue physique :</p>
+<pre class="hljs"><code><div>@startuml
+node &quot;Client&quot; as Client {
+  [Navigateur Web]
+}
+
+node &quot;API Gateway&quot; as APIGateway {
+  artifact &quot;Docker Container\n- Nginx (API Gateway)&quot; as NginxGateway
+}
+
+node &quot;Serveur Applicatif&quot; as AppServer {
+  artifact &quot;Docker Container\n- Django (Microservices)\n- API Caisse&quot; as DjangoApp
+  artifact &quot;Docker Container\n- Django (Microservices)\n- API Produits&quot; as ProduitService
+  artifact &quot;Docker Container\n- Django (Microservices)\n- API Stocks&quot; as StockService
+  artifact &quot;Docker Container\n- Django (Microservices)\n- API Ventes&quot; as VenteService
+  artifact &quot;Docker Container\n- Django (Microservices)\n- API Panier&quot; as PanierService
+  artifact &quot;Docker Container\n- Django (Microservices)\n- API Reporting&quot; as ReportingService
+}
+
+node &quot;Serveur Base de Données&quot; as DBServer {
+  artifact &quot;Docker Container\n- MySQL&quot; as MySQLDB
+}
+
+node &quot;Serveur Cache&quot; as CacheServer {
+  artifact &quot;Docker Container\n- Redis (Cache)&quot; as RedisCache
+}
+
+node &quot;Serveur Supervision&quot; as SupervisionServer {
+  artifact &quot;Docker Container\n- Prometheus&quot; as Prometheus
+  artifact &quot;Docker Container\n- Grafana&quot; as Grafana
+}
+
+Client --&gt; NginxGateway : HTTP/HTTPS
+NginxGateway --&gt; DjangoApp : API Caisse
+NginxGateway --&gt; ProduitService : API Produits
+NginxGateway --&gt; StockService : API Stocks
+NginxGateway --&gt; VenteService : API Ventes
+NginxGateway --&gt; PanierService : API Panier
+NginxGateway --&gt; ReportingService : API Reporting
+
+DjangoApp --&gt; MySQLDB : Connexion MySQL (port 3306)
+ProduitService --&gt; MySQLDB : Connexion MySQL (port 3306)
+StockService --&gt; MySQLDB : Connexion MySQL (port 3306)
+VenteService --&gt; MySQLDB : Connexion MySQL (port 3306)
+PanierService --&gt; MySQLDB : Connexion MySQL (port 3306)
+ReportingService --&gt; MySQLDB : Connexion MySQL (port 3306)
+
+StockService --&gt; RedisCache : Cache des stocks
+ProduitService --&gt; RedisCache : Cache des produits
+
+MySQLDB ..&gt; Volume : Persistance des données
+RedisCache ..&gt; Volume : Persistance du cache
+
+SupervisionServer --&gt; Prometheus : Collecte des métriques
+SupervisionServer --&gt; Grafana : Affichage des métriques
+
+@enduml
+</div></code></pre>
+<hr>
+<h2 id="8-concepts-transversaux">8. Concepts transversaux</h2>
+<p>Dans cette refonte vers une architecture microservices, plusieurs concepts transversaux ont été intégrés pour améliorer la scalabilité, la résilience et la surveillance du système.</p>
+<ul>
+<li>Chaque domaine fonctionnel (produits, stocks, ventes, etc.) est isolé dans un microservice indépendant, permettant une meilleure gestion des dépendances et une évolution autonome des services.</li>
+<li>L’API Gateway (Nginx) centralise les accès aux microservices, simplifiant le routage, la gestion des CORS et l’authentification.</li>
+<li>Un cache Redis est utilisé pour réduire la latence et alléger la charge sur la base de données, avec des règles d’invalidation pour garantir la cohérence des données.</li>
+<li>Grafana et Prometheus assurent l’observabilité en temps réel du système, en collectant et affichant des métriques critiques telles que la latence et le taux d’erreur.</li>
+<li>La scalabilité horizontale est facilitée par Docker et un load balancer, permettant une gestion dynamique de la charge et une haute disponibilité des services.</li>
+<li>L'API Gateway gère de manière centralisée l’authentification et la sécurité des communications entre les services.</li>
+</ul>
+<hr>
+<h2 id="9-d%C3%A9cisions">9. Décisions</h2>
+<p>Extraits des décisions architecturales :</p>
+<ul>
+<li>Adoption d’une architecture microservices avec isolation des domaines fonctionnels</li>
+<li>Mise en place de Docker et Docker Compose pour la conteneurisation des services</li>
+<li>Utilisation de Nginx comme API Gateway pour centraliser les accès aux services</li>
+<li>Intégration de Redis pour la gestion du cache et optimisation des performances</li>
+<li>Surveillance via Prometheus et Grafana pour la collecte et la visualisation des métriques</li>
+<li>Scalabilité assurée par un load balancer Nginx</li>
+</ul>
+<p>Ces décisions ont été prises pour garantir la scalabilité, la performance, et la résilience de l'application tout en facilitant sa gestion et son déploiement.
+Cependant, l’application ne dispose pas encore d’un mécanisme de journalisation centralisé. Cela limite la capacité à diagnostiquer les erreurs et à suivre les transactions critiques. Cette fonctionnalité sera intégrée dans les futures étapes du projet pour améliorer la traçabilité et la maintenabilité. De plus, la abse de donnée est encore partagée et pour bien atteindre l'état de microservice ils era essentiel de changer cela.</p>
+<hr>
+<h2 id="10-sc%C3%A9narios-de-qualit%C3%A9">10. Scénarios de qualité</h2>
+<p>L’application a été conçue pour répondre à plusieurs exigences de qualité essentielles :</p>
+<p>Testabilité : Les principales fonctionnalités, telles que la gestion des stocks, l'ajout au panier et la validation des ventes, sont couvertes par des tests unitaires et d'intégration. Ces tests sont exécutés automatiquement à chaque commit via GitHub Actions.</p>
+<p>Maintenabilité : L'architecture modulaire, avec une séparation claire des services (produit, stock, panier, vente), facilite l'évolution de l'application. L'ajout de nouvelles fonctionnalités ou la modification de comportements est simplifié.</p>
+<p>Qualité du code : Chaque commit subit une analyse statique via Pylint dans le pipeline CI/CD. Si les critères minimaux de qualité ne sont pas respectés, le pipeline échoue, garantissant ainsi un code cohérent et propre.</p>
+<p>Performance : L'application assure une performance optimale même avec une charge utilisateur importante, grâce à l'utilisation de Redis pour le cache, et à une gestion efficace des accès concurrents via des mécanismes transactionnels.</p>
+<p>Déployabilité et portabilité : Grâce à la conteneurisation via Docker et Docker Compose, le déploiement reste uniforme et rapide, que ce soit en environnement local ou en production, tout en garantissant la portabilité de l'application.</p>
+<hr>
+<h2 id="11-risques-et-dette-technique">11. Risques et dette technique</h2>
+<h3 id="risques-li%C3%A9s-%C3%A0-la-gestion-des-microservices">Risques liés à la gestion des microservices</h3>
+<p>Le découpage en microservices présente des avantages indéniables en termes de scalabilité et d’autonomie des composants, mais il introduit également des risques :
+Complexité de l'intégration : La communication entre services via des APIs expose le système à des problèmes d'intégration, notamment en cas de modifications non synchronisées des interfaces.</p>
+<p>Gestion des transactions distribuées : La gestion des transactions globales entre services reste complexe, surtout en cas d’erreur ou de panne, ce qui pourrait entraîner des incohérences dans les données.</p>
+<h3 id="dette-technique-sur-le-d%C3%A9couplage-des-api">Dette technique sur le découplage des API</h3>
+<p>Bien que les services soient bien séparés, une partie du code reste encore fortement couplée. Le découplage complet des API et la refonte des endpoints sont en cours, mais cela crée une dette technique :</p>
+<p>Couplage résiduel : Certaines logiques métier partagées entre les services n'ont pas encore été totalement séparées, ce qui nuit à la flexibilité à long terme.</p>
+<p>Documentation et gestion des API : Les API ne sont pas encore pleinement documentées et standardisées, ce qui complique leur gestion, surtout lorsqu’il s'agit de faire évoluer le système.</p>
+<h3 id="manque-de-m%C3%A9canismes-de-journalisation">Manque de mécanismes de journalisation</h3>
+<p>L’absence de journalisation centralisée reste un risque majeur. Elle limite la capacité à diagnostiquer des erreurs en production et à assurer une traçabilité fiable des actions utilisateurs et des modifications des stocks.</p>
+<h3 id="difficult%C3%A9-de-mont%C3%A9e-en-charge">Difficulté de montée en charge</h3>
+<p>Malgré la mise en place de Redis et de mécanismes de mise à l’échelle via Docker et Nginx, il reste des incertitudes concernant la gestion des pics de charge en cas de forte utilisation des services, notamment pendant les périodes de forte activité.</p>
+<hr>
+<h2 id="12-glossaire">12. Glossaire</h2>
+<ul>
+<li><strong>Caisse</strong> : point de vente utilisant l’application</li>
+<li><strong>Panier</strong> : sélection temporaire de produits avant validation de la vente</li>
+<li><strong>Vente</strong> : transaction enregistrée dans la base de données</li>
+<li><strong>Produit</strong> : article vendable avec stock associé</li>
+<li><strong>Magasin</strong> : lieu de vente physique ou virtuel</li>
+<li><strong>Transaction</strong> : ensemble des opérations atomiques pour garantir la cohérence des données</li>
+<li><strong>Session</strong> : instance utilisateur durant l’utilisation de la caisse</li>
+</ul>
+
+</body>
+</html>
