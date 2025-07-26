@@ -1,7 +1,7 @@
 """Ce module gère les accès à la base de données pour tout ce qui concerne les produits."""
 from django.db.models import Q
-from produit_service.produits.models import Produit
-from stock_service.stocks.models import Stock
+from ..models import Produit
+#from ..models import Stock
 
 def get_produits_par_magasin(magasin_id):#maybe should be dans stock service instead
     """Retourne la liste des produits disponibles dans un magasin donné."""

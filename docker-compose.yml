@@ -65,6 +65,7 @@ services:
       - "5000"
     depends_on:
       - db
+      - produit_service
     restart: unless-stopped
     networks:
       - backend

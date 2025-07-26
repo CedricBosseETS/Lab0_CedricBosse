@@ -1,7 +1,9 @@
 """Ce module gère les accès à la base de données pour tout ce qui concerne les stocks."""
 from django.db import transaction
 from django.db.models import Sum
-from stock_service.stocks.models import Stock
+from ..models import Stock
+import requests
+
 #from produit_service.produits.models import Produit #fix
 
 def get_stock_total_par_magasin():
@@ -40,10 +42,19 @@ def get_stock_indexed_by_produit(centre_id, magasin_id):
     stock_local = get_stock_dict_for_magasin(magasin_id)
     return stock_centre, stock_local
 
-def get_produits_disponibles(magasin_id):
+def get_produits_disponibles(magasin_id):#############
     """Retourne la liste des produits avec stock > 0 dans un magasin donné."""
-    stock_entries = Stock.objects.filter(magasin_id=magasin_id, quantite__gt=0).select_related('produit')
-    return [entry.produit for entry in stock_entries]
+    stock_entries = Stock.objects.filter(magasin_id=magasin_id, quantite__gt=0)
+    produits_ids = [entry.produitId for entry in stock_entries]
+
+    # Appel à l'API produit_service
+    try:
+        resp = requests.get("http://localhost:5000/api/produits/", params={"ids": produits_ids})
+        resp.raise_for_status()
+        produits_data = resp.json()
+        return produits_data
+    except Exception as e:
+        raise Exception(f"Erreur récupération produits : {str(e)}")
 
 @transaction.atomic
 def transferer_stock(produit_id, quantite, source_magasin_id, destination_magasin_id):

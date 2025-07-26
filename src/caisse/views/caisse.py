@@ -7,10 +7,10 @@ from django.http import HttpResponseNotFound, HttpResponseServerError
 import requests
 
 from caisse.services import magasin_service
-from stock_service.stocks.services import stock_service
-from produit_service.produits.services import produit_service
+#from stock_service.stocks.services import stock_service
+#from produit_service.produits.services import produit_service
 from caisse.models import Magasin
-from produit_service.produits.models import Produit
+#from produit_service.produits.models import Produit
 
 
 def page_caisse(request, magasin_id):
@@ -23,20 +23,14 @@ def page_caisse(request, magasin_id):
             headers['Cookie'] = f'sessionid={session_cookie}'
 
     # 1. Récupération du magasin
-    resp_magasin = requests.get(f"http://localhost:5000/api/magasins/{magasin_id}/", headers=headers)
-    if resp_magasin.status_code != 200:
-        return HttpResponseNotFound("Magasin introuvable")
-    magasin = resp_magasin.json()
+    magasin = magasin_service.get_magasin_by_id(magasin_id)
 
     # 2. Récupération du centre logistique
-    resp_centre = requests.get("http://localhost:5000/api/magasins/centre_logistique/", headers=headers)
-    if resp_centre.status_code != 200:
-        return HttpResponseNotFound("Centre logistique introuvable")
-    centre_logistique = resp_centre.json()
+    centre_logistique = magasin_service.get_centre_logistique()
 
     # 3. Produits disponibles au centre logistique
     try:
-        resp_produits = requests.get(f"http://localhost:5000/api/stock/produits_disponibles/{centre_logistique['id']}/", headers=headers)
+        resp_produits = requests.get(f"http://localhost:5000/api/stock/produits_disponibles/{magasin.id}/", headers=headers)
         resp_produits.raise_for_status()
         produits_centre = resp_produits.json()
     except requests.exceptions.RequestException as e:
@@ -44,7 +38,7 @@ def page_caisse(request, magasin_id):
 
     # 4. Stock indexé
     try:
-        resp_stock = requests.get(f"http://localhost:5000/api/stock/stock_indexe/{centre_logistique['id']}/{magasin['id']}/", headers=headers)
+        resp_stock = requests.get(f"http://localhost:5000/api/stock/stock_indexe/{centre_logistique.id}/{magasin.id}/", headers=headers)
         resp_stock.raise_for_status()
         stock_data = resp_stock.json()
         stock_centre = stock_data.get("stock_centre", {})

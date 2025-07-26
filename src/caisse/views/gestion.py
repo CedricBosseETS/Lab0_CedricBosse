@@ -2,12 +2,12 @@
 
 from django.shortcuts import render, redirect
 from django.views.decorators.http import require_POST
-from vente_service.ventes.services import vente_service
-from produit_service.produits.services import produit_service
-from stock_service.stocks.services import stock_service
-from reporting_service.reporting.services import reporting_service
+#from vente_service.ventes.services import vente_service
+#from produit_service.produits.services import produit_service
+#from stock_service.stocks.services import stock_service
+#from reporting_service.reporting.services import reporting_service
 from caisse.models import Magasin
-from produit_service.produits.models import Produit
+#from produit_service.produits.models import Produit
 from caisse.services import magasin_service
 
 def admin_page(request):

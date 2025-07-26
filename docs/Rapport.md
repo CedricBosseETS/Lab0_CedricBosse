@@ -1,7 +1,7 @@
 # Rapport Cédric Bossé - Application Caisse Multi-utilisateurs
 
 ---
-Répositoire github : https://github.com/CedricBosseETS/Lab0_CedricBosse/releases/tag/Lab5_remise
+Répositoire github : https://github.com/CedricBosseETS/Lab0_CedricBosse/releases/tag/Lab5_release
 ---
 
 ## 1. Introduction et objectifs
