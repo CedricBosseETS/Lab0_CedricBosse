@@ -1,12 +1,6 @@
 """Ce module gère les accès à la base de données pour tout ce qui concerne les produits."""
 from django.db.models import Q
 from ..models import Produit
-#from ..models import Stock
-
-def get_produits_par_magasin(magasin_id):#maybe should be dans stock service instead
-    """Retourne la liste des produits disponibles dans un magasin donné."""
-    stocks = Stock.objects.filter(magasin_id=magasin_id).select_related('produit')
-    return [stock.produit for stock in stocks]
 
 def rechercher_produits_par_nom_ou_id(query):
     """Recherche des produits par ID exact ou par nom partiel."""

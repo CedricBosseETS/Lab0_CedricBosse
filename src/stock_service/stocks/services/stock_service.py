@@ -20,7 +20,7 @@ def get_stock_total_par_magasin():
 
 def get_stock_par_magasin(magasin_id):
     """Retourne toutes les entrées de stock pour un magasin donné avec les produits liés."""
-    return Stock.objects.filter(magasin_id=magasin_id).select_related('produit')
+    return Stock.objects.filter(magasin_id=magasin_id).select_related('produit')#ne va plus fonctionner
 
 def get_stock_entry(magasin_id, produit_id):
     """Retourne l'entrée de stock pour un produit donné dans un magasin donné ou None."""
@@ -31,10 +31,10 @@ def get_stock_dict_for_magasin(magasin_id):
     Retourne un dictionnaire indexé par produit_id contenant
     les entrées de stock pour un magasin donné.
     """
-    stock_list = Stock.objects.filter(magasin_id=magasin_id).select_related('produit')
-    return {stock.produit.id: stock for stock in stock_list}
+    stock_list = Stock.objects.filter(magasin_id=magasin_id)
+    return {stock.produit_id: stock for stock in stock_list}
 
-def get_stock_indexed_by_produit(centre_id, magasin_id):
+def get_stock_indexed_by_produit(centre_id, magasin_id):##################
     """
     Retourne deux dictionnaires indexés par produit_id : stock du centre et stock local.
     """
@@ -42,19 +42,26 @@ def get_stock_indexed_by_produit(centre_id, magasin_id):
     stock_local = get_stock_dict_for_magasin(magasin_id)
     return stock_centre, stock_local
 
-def get_produits_disponibles(magasin_id):#############
-    """Retourne la liste des produits avec stock > 0 dans un magasin donné."""
+def get_produits_disponibles(magasin_id):
+    """
+    Retourne les objets produits pour lesquels il y a du stock dans un magasin donné.
+    """
+    # 1. Récupération des IDs des produits en stock
     stock_entries = Stock.objects.filter(magasin_id=magasin_id, quantite__gt=0)
-    produits_ids = [entry.produitId for entry in stock_entries]
+    produits_ids = {entry.produit_id for entry in stock_entries}
 
-    # Appel à l'API produit_service
+    # 2. Appel à l'API pour obtenir tous les produits
     try:
-        resp = requests.get("http://localhost:5000/api/produits/", params={"ids": produits_ids})
+        resp = requests.get("http://nginx/api/produits/")
         resp.raise_for_status()
-        produits_data = resp.json()
-        return produits_data
+        all_produits = resp.json()
     except Exception as e:
-        raise Exception(f"Erreur récupération produits : {str(e)}")
+        raise Exception(f"Erreur API produit_service : {str(e)}")
+
+    # 3. Filtrer seulement ceux qui sont dans la liste des IDs
+    produits_disponibles = [p for p in all_produits if p["id"] in produits_ids]
+
+    return produits_disponibles
 
 @transaction.atomic
 def transferer_stock(produit_id, quantite, source_magasin_id, destination_magasin_id):

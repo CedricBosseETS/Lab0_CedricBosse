@@ -60,3 +60,10 @@ def get_produit(request, pk):
         return Response(serializer.data)
     except Produit.DoesNotExist:
         return Response(status=404)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_all_produits(request):
+    produits = produit_service.get_tous_les_produits()
+    serializer = ProduitSerializer(produits, many=True)
+    return Response(serializer.data)

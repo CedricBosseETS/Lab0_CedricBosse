@@ -36,7 +36,7 @@
             const ul = document.getElementById('liste-produits');
             ul.innerHTML = '<li>Chargement…</li>';
             try {
-                const res = await fetch(`/api/stocks/?magasin_id=${magasinId}`, {
+                const res = await fetch(`/api/stock/produits_disponibles/${magasinId}/`, {
                     credentials: 'include'
                 });
                 if (!res.ok) throw new Error('Erreur chargement stocks');
@@ -225,14 +225,13 @@
                         messageDiv.innerHTML = `<p style="color:red;">Erreur : ${data.error || "Échec du réapprovisionnement."}</p>`;
                     } else {
                         messageDiv.innerHTML = `<p style="color:green;">Réapprovisionnement effectué avec succès.</p>`;
-                        location.reload(); // TODO: alternative si nécessaire
+                        location.reload();
                     }
                 } catch (err) {
                     messageDiv.innerHTML = `<p style="color:red;">Erreur réseau : ${err.message}</p>`;
                 }
             });
 
-            // Chargement initial du panier
             afficherPanier();
         });
     </script>
@@ -265,7 +264,7 @@
             <option value="" disabled selected>Choisir un produit</option>
             {% for produit_id, stock in stock_centre.items %}
             <option value="{{ produit_id }}">
-                {{ stock.produit.nom }} ({{ stock.quantite }} en stock)
+                {{ stock.produit_nom }} ({{ stock.quantite }} en stock)
             </option>
             {% endfor %}
         </select>

@@ -2,10 +2,25 @@
 from django.core.management.base import BaseCommand
 from stocks.models import Stock
 import requests
+import time
 
+MAX_RETRIES = 10
+RETRY_DELAY = 2  # secondes
+
+def attendre_service(url):
+    for i in range(MAX_RETRIES):
+        try:
+            response = requests.get(url, headers={"Host": "localhost"})
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            print(f"⏳ Tentative {i+1}/{MAX_RETRIES} : {url} non disponible ({e})")
+            time.sleep(RETRY_DELAY)
+    raise Exception(f"❌ Échec après {MAX_RETRIES} tentatives pour joindre {url}")
 
 class Command(BaseCommand):
     help = "Initialise le stock de base dans le centre logistique."
+    print("Initialisation du stock de base dans le centre logistique.")
 
     def handle(self, *args, **kwargs):
         if Stock.objects.exists():
@@ -13,8 +28,8 @@ class Command(BaseCommand):
             return
 
         try:
-            produits = requests.get("http://produit_service:5000/api/produits/").json()
-            magasins = requests.get("http://caisse:5000/api/magasins/").json()
+            produits = attendre_service("http://produit_service:5000/api/produits/")
+            magasins = attendre_service("http://app:5000/api/magasins/")
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"Erreur lors des appels API : {e}"))
             return
@@ -32,5 +47,3 @@ class Command(BaseCommand):
 
         Stock.objects.bulk_create(stocks)
         self.stdout.write(self.style.SUCCESS("Stock initial ajouté au centre logistique."))
-
-

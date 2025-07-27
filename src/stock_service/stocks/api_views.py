@@ -191,16 +191,7 @@ def produits_disponibles_api(request, magasin_id):
     Retourne tous les produits disponibles (>0 en stock) pour un magasin donné.
     """
     try:
-        produits = stock_service.get_produits_disponibles(magasin_id)
-        produits_data = [
-            {
-                "id": p.id,
-                "nom": p.nom,
-                "prix": p.prix,
-                "description": p.description,
-            }
-            for p in produits
-        ]
+        produits_data = stock_service.get_produits_disponibles(magasin_id)
         return Response(produits_data, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -214,9 +205,22 @@ def stock_indexe_api(request, centre_id, magasin_id):
     """
     try:
         stock_centre, stock_local = stock_service.get_stock_indexed_by_produit(centre_id, magasin_id)
+
+        # 🔁 On transforme chaque Stock en dict JSON avec le serializer
+        stock_centre_serialized = {
+            produit_id: StockSerializer(stock_obj).data
+            for produit_id, stock_obj in stock_centre.items()
+        }
+
+        stock_local_serialized = {
+            produit_id: StockSerializer(stock_obj).data
+            for produit_id, stock_obj in stock_local.items()
+        }
+
         return Response({
-            'stock_centre': stock_centre,
-            'stock_local': stock_local
+            'stock_centre': stock_centre_serialized,
+            'stock_local': stock_local_serialized
         }, status=status.HTTP_200_OK)
+
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

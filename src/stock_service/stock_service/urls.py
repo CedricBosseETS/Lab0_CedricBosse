@@ -16,5 +16,5 @@ urlpatterns = [
     path('api/stock/transferer/', transferer_stock, name='transferer_stock'),
     path('api/stock/centre/<int:magasin_id>/bulk_reapprovisionner/', bulk_reapprovisionner_api), 
     path('api/stock/produits_disponibles/<int:magasin_id>/', produits_disponibles_api),
-    path('api/stock/stock_indexe/<int:centre_id>/<int:magasin_id>/', stock_indexe_api),    
+    path('api/stock/stock_indexe/<int:centre_id>/<int:magasin_id>/', stock_indexe_api),
 ]

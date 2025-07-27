@@ -6,11 +6,11 @@ from django.test import TestCase
 
 API_BASE_URL = "http://10.194.32.173:8000/api"
 
-'''
+
 def get_all_magasins():
     """Retourne tous les magasins, quelle que soit leur catégorie."""
     return Magasin.objects.all()
-'''
+
 def get_only_magasins():
     """Retourne uniquement les magasins de type 'magasin' depuis l'API."""
     try:

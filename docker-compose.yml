@@ -95,7 +95,7 @@ services:
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
-      ALLOWED_HOSTS: 'app,nginx,localhost,127.0.0.1'
+      ALLOWED_HOSTS: 'app,nginx,localhost,127.0.0.1,produit_service'
     expose:
       - "5000"    
     depends_on:

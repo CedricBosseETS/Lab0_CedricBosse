@@ -43,12 +43,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "drf_yasg",
 
-    "caisse",
-    "vente_service",
-    "reporting_service",
-    "stock_service",
-    "produit_service",
-    "panier_service",
+    "caisse"
 ]
 
 MIDDLEWARE = [
@@ -115,6 +110,7 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
+        "rest_framework.renderers.BrowsableAPIRenderer",
     ],
     "DEFAULT_PARSER_CLASSES": [
         "rest_framework.parsers.JSONParser",
