@@ -35,7 +35,7 @@ def page_caisse(request, magasin_id):
 
     # 4. Stock indexé
     try:
-        resp_stock = requests.get(f"http://nginx/api/stock/stock_indexe/{centre_logistique.id}/{magasin.id}/", headers=headers)##########################
+        resp_stock = requests.get(f"http://nginx/api/stock/stock_indexe/{centre_logistique.id}/{magasin.id}/", headers=headers)
         resp_stock.raise_for_status()
         stock_data = resp_stock.json()
         stock_centre = stock_data.get("stock_centre", {})

@@ -41,10 +41,8 @@ urlpatterns = [
             schema_view.without_ui(cache_timeout=0), name='schema-json'),
 
     # --- API REST ---
-    path('api/', include(router.urls)),
-    path('api/magasins/', get_magasins),
-    path('api/magasins/<int:id>/', get_magasin_by_id),
     path('api/magasins/centre_logistique/', get_centre_logistique),
+    path('api/', include(router.urls)),
 
     # --- Vues classiques (UI) ---
     path('', home.home_view, name='home'),

@@ -14,6 +14,8 @@ from rest_framework.response import Response
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 
+from requests.auth import HTTPBasicAuth
+
 # Nouveaux imports pour le cache
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
@@ -30,14 +32,16 @@ logger = structlog.get_logger()
 @csrf_exempt
 @api_view(['POST'])
 def reapprovisionner_api(request, magasin_id):
-    resp_magasin = requests.get(f"http://nginx/api/magasins/{magasin_id}/")
+    cookies = request.COOKIES
+
+    resp_magasin = requests.get(f"http://nginx/api/magasins/{magasin_id}/", cookies=cookies)
     if resp_magasin.status_code != 200:
         return Response({"error": "Magasin introuvable"}, status=404)
     magasin = resp_magasin.json()
 
-    resp_centre = requests.get("http://nginx/api/magasins/centre_logistique/")
+    resp_centre = requests.get("http://nginx/api/magasins/centre_logistique/", auth=HTTPBasicAuth("super_caisse_user", "supersecret"))
     if resp_centre.status_code != 200:
-        return Response({"error": "Centre logistique introuvable"}, status=404)
+        return Response({"error": "Centre logistique introuvable"}, status=resp_centre.status_code)
     centre_logistique = resp_centre.json()
 
     produit_id = request.data.get('produit_id')
@@ -202,24 +206,35 @@ def stock_indexe_api(request, centre_id, magasin_id):
     Retourne deux dictionnaires de stock indexés par produit_id :
     - stock du centre logistique
     - stock local du magasin
+    Enrichi avec nom et prix du produit (via appel à l’API produit_service).
     """
     try:
         stock_centre, stock_local = stock_service.get_stock_indexed_by_produit(centre_id, magasin_id)
 
-        # 🔁 On transforme chaque Stock en dict JSON avec le serializer
-        stock_centre_serialized = {
-            produit_id: StockSerializer(stock_obj).data
-            for produit_id, stock_obj in stock_centre.items()
-        }
+        # 1. Récupérer tous les IDs de produits à enrichir
+        tous_ids = set(stock_centre.keys()) | set(stock_local.keys())
 
-        stock_local_serialized = {
-            produit_id: StockSerializer(stock_obj).data
-            for produit_id, stock_obj in stock_local.items()
-        }
+        # 2. Appel API produit pour récupérer les infos
+        resp = requests.get("http://nginx/api/produits/")
+        resp.raise_for_status()
+        produits = resp.json()
+        produits_par_id = {p["id"]: p for p in produits}
+
+        # 3. Enrichir les stocks
+        def serialize_stock(stock_dict):
+            out = {}
+            for pid, stock in stock_dict.items():
+                data = StockSerializer(stock).data
+                prod = produits_par_id.get(pid)
+                if prod:
+                    data["produit_nom"] = prod["nom"]
+                    data["produit_prix"] = prod["prix"]
+                out[pid] = data
+            return out
 
         return Response({
-            'stock_centre': stock_centre_serialized,
-            'stock_local': stock_local_serialized
+            'stock_centre': serialize_stock(stock_centre),
+            'stock_local': serialize_stock(stock_local),
         }, status=status.HTTP_200_OK)
 
     except Exception as e:

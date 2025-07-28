@@ -3,7 +3,7 @@ URL configuration for reporting_service project.
 """
 from django.contrib import admin
 from django.urls import path
-from reporting_service.reporting.api_views import (
+from reporting.api_views import (
     rapport_ventes_api,
     tableau_de_bord_api,
     donnees_approvisionnement

@@ -6,15 +6,6 @@ from django.db.models import Sum, F, ExpressionWrapper, FloatField
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from rest_framework import status, viewsets, filters
-from caisse.models import Magasin
-from produit_service.produits.models import Produit
-from stock_service.stocks.models import Stock
-from vente_service.ventes.models import Vente, VenteProduit
-
-from caisse.serializers import MagasinSerializer
-from produit_service.serializers import ProduitSerializer
-from stock_service.serializers import StockSerializer
-from vente_service.serializers import VenteSerializer
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -28,9 +19,6 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 
-from caisse.services import magasin_service
-from stock_service.stocks.services import stock_service
-from produit_service.produits.services import produit_service
 
 
 logger = structlog.get_logger()

@@ -34,7 +34,7 @@ def get_stock_dict_for_magasin(magasin_id):
     stock_list = Stock.objects.filter(magasin_id=magasin_id)
     return {stock.produit_id: stock for stock in stock_list}
 
-def get_stock_indexed_by_produit(centre_id, magasin_id):##################
+def get_stock_indexed_by_produit(centre_id, magasin_id):
     """
     Retourne deux dictionnaires indexés par produit_id : stock du centre et stock local.
     """
@@ -44,13 +44,16 @@ def get_stock_indexed_by_produit(centre_id, magasin_id):##################
 
 def get_produits_disponibles(magasin_id):
     """
-    Retourne les objets produits pour lesquels il y a du stock dans un magasin donné.
+    Retourne les objets produits disponibles dans un magasin donné,
+    enrichis avec la quantité en stock.
     """
-    # 1. Récupération des IDs des produits en stock
+    # 1. Récupérer les entrées de stock (quantité > 0)
     stock_entries = Stock.objects.filter(magasin_id=magasin_id, quantite__gt=0)
-    produits_ids = {entry.produit_id for entry in stock_entries}
 
-    # 2. Appel à l'API pour obtenir tous les produits
+    # 2. Créer un dictionnaire {produit_id: quantite}
+    stock_par_produit = {entry.produit_id: entry.quantite for entry in stock_entries}
+
+    # 3. Appeler l'API produit pour récupérer tous les produits
     try:
         resp = requests.get("http://nginx/api/produits/")
         resp.raise_for_status()
@@ -58,8 +61,13 @@ def get_produits_disponibles(magasin_id):
     except Exception as e:
         raise Exception(f"Erreur API produit_service : {str(e)}")
 
-    # 3. Filtrer seulement ceux qui sont dans la liste des IDs
-    produits_disponibles = [p for p in all_produits if p["id"] in produits_ids]
+    # 4. Filtrer ceux qui sont en stock et ajouter la quantité
+    produits_disponibles = []
+    for p in all_produits:
+        pid = p["id"]
+        if pid in stock_par_produit:
+            p["quantite"] = stock_par_produit[pid]
+            produits_disponibles.append(p)
 
     return produits_disponibles
 

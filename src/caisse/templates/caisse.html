@@ -48,12 +48,12 @@
                     for (const s of stocks) {
                         const li = document.createElement('li');
                         li.innerHTML = `
-              ${s.produit.nom} — Stock: ${s.quantite}
-              <input type="number" id="stock-qte-${s.produit.id}" min="1" value="1">
-              <button data-produit="${s.produit.id}">Ajouter</button>
+              ${s.nom} — Stock: ${s.quantite}
+              <input type="number" id="stock-qte-${s.produit_id}" min="1" value="1">
+              <button data-produit="${s.produit_id}">Ajouter</button>
             `;
                         li.querySelector('button').addEventListener('click', () => {
-                            ajouterAuPanier(s.produit.id, `stock-qte-${s.produit.id}`);
+                            ajouterAuPanier(s.produit_id, `stock-qte-${s.produit_id}`);
                         });
                         ul.appendChild(li);
                     }
@@ -205,7 +205,7 @@
                 const quantite = document.getElementById('quantite-input').value;
 
                 try {
-                    const response = await fetch(`/api/magasins/${magasinId}/reapprovisionner/`, {
+                    const response = await fetch(`/api/stock/magasins/${magasinId}/reapprovisionner/`, {
                         method: 'POST',
                         credentials: 'include',
                         headers: {
@@ -264,7 +264,7 @@
             <option value="" disabled selected>Choisir un produit</option>
             {% for produit_id, stock in stock_centre.items %}
             <option value="{{ produit_id }}">
-                {{ stock.produit_nom }} ({{ stock.quantite }} en stock)
+                {{ stock.produit_nom  }} ({{ stock.quantite }} en stock)
             </option>
             {% endfor %}
         </select>
