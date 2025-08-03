@@ -1,0 +1,37 @@
+@startuml
+left to right direction
+skinparam actorStyle awesome
+
+actor "Développeur" as Dev
+actor "Utilisateur final" as User
+
+rectangle "Appwrite" {
+  
+  usecase "Créer un projet" as UC1
+  usecase "Gérer les utilisateurs" as UC2
+  usecase "Authentification (OAuth, Email, etc.)" as UC3
+  usecase "Lire/écrire dans la base de données" as UC4
+  usecase "Uploader/télécharger des fichiers" as UC5
+  usecase "Déployer une fonction personnalisée" as UC6
+  usecase "Appeler une fonction" as UC7
+  usecase "Configurer les rôles/permissions" as UC8
+  usecase "Envoyer des notifications (Emails, SMS)" as UC9
+  usecase "Superviser la santé du backend" as UC10
+
+}
+
+Dev --> UC1
+Dev --> UC2
+Dev --> UC4
+Dev --> UC5
+Dev --> UC6
+Dev --> UC8
+Dev --> UC10
+Dev --> UC9
+
+User --> UC3
+User --> UC4
+User --> UC5
+User --> UC7
+
+@enduml
