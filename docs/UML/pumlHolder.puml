@@ -1,37 +1,43 @@
 @startuml
-left to right direction
-skinparam actorStyle awesome
-
-actor "Développeur" as Dev
-actor "Utilisateur final" as User
-
-rectangle "Appwrite" {
-  
-  usecase "Créer un projet" as UC1
-  usecase "Gérer les utilisateurs" as UC2
-  usecase "Authentification (OAuth, Email, etc.)" as UC3
-  usecase "Lire/écrire dans la base de données" as UC4
-  usecase "Uploader/télécharger des fichiers" as UC5
-  usecase "Déployer une fonction personnalisée" as UC6
-  usecase "Appeler une fonction" as UC7
-  usecase "Configurer les rôles/permissions" as UC8
-  usecase "Envoyer des notifications (Emails, SMS)" as UC9
-  usecase "Superviser la santé du backend" as UC10
-
+skinparam node {
+  BackgroundColor #ECECEC
+  BorderColor black
+  FontSize 12
 }
 
-Dev --> UC1
-Dev --> UC2
-Dev --> UC4
-Dev --> UC5
-Dev --> UC6
-Dev --> UC8
-Dev --> UC10
-Dev --> UC9
+cloud "Internet" {
+  [Client Web/Mobile]
+}
 
-User --> UC3
-User --> UC4
-User --> UC5
-User --> UC7
+node "Reverse Proxy (Traefik)" {
+  [Entrée HTTPS]
+}
+
+node "Appwrite Core (docker service: appwrite)" {
+  [Appwrite Server (PHP)]
+}
+
+node "Infrastructure" {
+  database "MariaDB" as MariaDB
+  database "Redis" as Redis
+  component "MinIO (Object Storage)" as MinIO
+}
+
+node "Workers (queue/fn)" {
+  component "Functions Executor"
+  component "Queue Mail"
+  component "Usage Collector"
+}
+
+[Client Web/Mobile] --> [Entrée HTTPS] : HTTPS request
+[Entrée HTTPS] --> [Appwrite Server (PHP)] : Proxy pass
+
+[Appwrite Server (PHP)] --> Redis : sessions, cache, queue
+[Appwrite Server (PHP)] --> MariaDB : persistance des données
+[Appwrite Server (PHP)] --> MinIO : stockage des fichiers, fonctions, logs
+
+[Functions Executor] --> MinIO : récupère code fonctions, stocke logs
+[Queue Mail] --> Redis : retire jobs
+[Usage Collector] --> Redis : récupère données usage
 
 @enduml
